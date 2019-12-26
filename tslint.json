@@ -9,11 +9,28 @@
     ]
   },
   "rules": {
+    "arrow-parens": false,
+    "array-type": false,
+    "comment-format": [true, "check-space"],
     "indent": [true, "spaces", 2],
     "interface-name": false,
+    "member-access": false,
+    "member-ordering": false,
+    "no-string-literal": false,
+    "no-unused-expression": [true, "allow-fast-null-checks"],
     "no-consecutive-blank-lines": false,
-    "object-literal-sort-keys": false,
+    "no-console": false,
+    "no-submodule-imports": false,
+    "no-shadowed-variable": false,
+    "no-require-imports": false,
+    "no-var-requires": false,
     "ordered-imports": false,
-    "quotemark": [true, "single"]
+    "object-literal-sort-keys": false,
+    "only-arrow-functions": false,
+    "quotemark": [true, "single"],
+    "semicolon": [true, "never"],
+    "space-before-function-paren": true,
+    "trailing-comma": false,
+    "no-new": false
   }
 }
