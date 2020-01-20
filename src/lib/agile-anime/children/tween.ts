@@ -27,7 +27,7 @@ export const Elastic = {
     let s
     if (t === 0) { return b }
     t /= d
-    if ((t) === 1) { return b + c }
+    if (t === 1) { return b + c }
     if (!p) { p = d * 0.3 }
     if (!a || a < Math.abs(c)) {
       a = c

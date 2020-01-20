@@ -1,24 +1,29 @@
 <template lang="pug">
 div#app
-  div.ball-1(id="ball1", @click="playBall(1)")
+  //- 不同顺序播放
+  div.button-wrap
+    div.button(@click="playBall(1)")
+      | normal
+    div.button(@click="playBall(1, 'reverse', true)")
+      | reverse
+    div.button(@click="playBall(1, 'alternate', true)")
+      | alternate
   
-  div.ball-2(id="ball2", @click="playBall(2)")
+  div.demo-panel
+    div.ball-1(id="ball1")
 
-  div.ball-2(id="ball3", @click="playBall(3)")
+  //- 不同顺序播放
+  div.button-wrap
+    div.button(@click="playBall(2, 'alternate', true)")
+      | play
+    div.button(@click="pauseBall(2)")
+      | pause
+    div.button(@click="stopBall(2)")
+      | stop
+  
+  div.demo-panel
+    div.ball-1(id="ball2")
 
-  div.ball-2(id="ball4", @click="playBall(4)")
-
-  div.ball-2(id="ball5", @click="playBall(5)")
-
-  div.ball-2(id="ball6", @click="playBall(6)")
-
-  div.ball-2(id="ball7", @click="playBall(7)")
-
-  div.ball-2(id="ball8", @click="playBall(8)")
-
-  div.ball-2(id="ball9", @click="playBall(9)")
-
-  div.ball-2(id="ball10", @click="playBall(10)")
 </template>
 
 <script lang="ts">
@@ -38,9 +43,11 @@ export default class App extends Vue {
   anime9: AgileAnime | null = null
   anime10: AgileAnime | null = null
 
-  playBall (index: number) {
+  playBall (index: number, dirt: string = 'normal', loop: boolean = false) {
     const self: any = this
     const anime = self['anime' + index]
+    anime.direction = dirt
+    anime.loop = loop
     if (anime.playing) {
       console.log('动画正在进行中...')
       return
@@ -48,52 +55,67 @@ export default class App extends Vue {
     anime && anime.play()
   }
 
+  pauseBall (index: number) {
+    const self: any = this
+    const anime = self['anime' + index]
+    anime && anime.pause()
+  }
+
+  stopBall (index: number) {
+    const self: any = this
+    const anime = self['anime' + index]
+    anime && anime.stop()
+  }
+
   mounted () {
     this.$nextTick(() => {
       const dom = document.querySelector('#app #ball1') as HTMLElement
-      this.anime1 = new AgileAnime(dom, true)
+      this.anime1 = new AgileAnime(dom, false)
       this.anime1
-      .animator(1000, {
-        translateX: 300
+      .animator(350, {
+        translateX: 0,
+        translateY: 0
       }, 'ease-in')
-      .animator(1500, {
-        translateY: 500
-      }, 'linear')
-      .animator(2000, {
-        translateX: 0,
+      .animator(350, {
+        translateX: 100,
         translateY: 0
-      }, 'ease-in-out')
-      .animator(1000, {
-        translateX: 300,
+      }, 'ease-in')
+      .animator(350, {
+        translateX: 100,
         translateY: 100
-      }, 'ease-out')
-      .animator(1000, {
-        translateX: 400,
-        translateY: 400
-      }, 'elasticEaseOut')
-      .animator(1000, {
-        translateX: 500,
-        translateY: 600
-      }, 'cubic-bezier(1.00, 0.47, 0.51, -0.05)')
-      .animator(1500, {
+      }, 'linear')
+      .animator(350, {
+        translateX: 0,
+        translateY: 100
+      }, 'ease-in-out')
+      .animator(350, {
         translateX: 0,
         translateY: 0
-      }, 'linear')
+      }, 'ease-out')
 
       const dom2 = document.querySelector('#app #ball2') as HTMLElement
       this.anime2 = new AgileAnime(dom2)
       this.anime2
-      .animator(1000, {
-        translateY: 300
-      }, 'elasticEaseInOut')
-      .animator(1000, {
-        translateX: 500,
-        translateY: 600
-      }, 'cubic-bezier(1.00, 0.47, 0.51, -0.05)')
-      .animator(1000, {
+      .animator(350, {
         translateX: 0,
         translateY: 0
-      }, 'elasticEaseOut')
+      }, 'ease-in')
+      .animator(350, {
+        translateX: 100,
+        translateY: 0
+      }, 'ease-in')
+      .animator(350, {
+        translateX: 100,
+        translateY: 100
+      }, 'linear')
+      .animator(350, {
+        translateX: 0,
+        translateY: 100
+      }, 'ease-in-out')
+      .animator(350, {
+        translateX: 0,
+        translateY: 0
+      }, 'ease-out')
 
       const dom3 = document.querySelector('#app #ball3') as HTMLElement
       this.anime3 = new AgileAnime(dom3)
@@ -146,13 +168,22 @@ export default class App extends Vue {
       const dom7 = document.querySelector('#app #ball7') as HTMLElement
       this.anime7 = new AgileAnime(dom7, true)
       this.anime7
+      .animator(1000, {
+        translateX: 0,
+        translateY: 0
+      }, 'bounceEaseInOut')
       .animator(2000, {
+        translateX: 0,
         translateY: 300
       }, 'bounceEaseInOut')
       .animator(1000, {
-        translateX: 100,
-        translateY: 100
+        translateX: 300,
+        translateY: 300
       }, 'elasticEaseOut')
+      .animator(1000, {
+        translateX: 300,
+        translateY: 0
+      }, 'bounceEaseOut')
       .animator(1000, {
         translateX: 0,
         translateY: 0
@@ -216,19 +247,47 @@ export default class App extends Vue {
   color #2c3e50
   margin-top 60px
   .ball-1, .ball-2
-    float left
+    position absolute
+    left 50%
+    top 50%
     width 20px
     height 20px
-    margin-right 30px
+    margin-left -10px
+    margin-top -10px
     background-color red
     border-radius 50%
-    &:first-child
-      margin-left 40px
-    &:last-child
-      margin-right 0
   .ball-1
-    background-color red
+    background-color #FF83FA
   .ball-2
     background-color blue
-
+  
+  .button-wrap
+    display flex
+    justify-content center
+    .button
+      position relative
+      height 32px
+      line-height 32px
+      margin-right 60px
+      padding 0 10px
+      border-radius 5px
+      font-size 16px
+      font-weight bold
+      color #ffffff
+      background-color #00BFFF
+      cursor pointer
+      &:last-child
+        margin-right 0
+      &:hover
+        background-color #0072ff
+  
+  .demo-panel
+    position relative
+    width 400px
+    height 400px
+    margin 0 auto 20px
+    margin-top 10px
+    background-color #E0EEEE
+    box-shadow 2px 2px 5px 2px rgba(0,0,0,0.3)
+    border-radius 10px
 </style>

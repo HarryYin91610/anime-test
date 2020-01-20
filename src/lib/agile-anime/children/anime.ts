@@ -6,13 +6,16 @@ import { AnimeNode } from '../typings'
 import BezierEasing from 'bezier-easing'
 
 export default class Anime {
-  private sequence: number = 0 // 动画序号
+  public sequence: number = 0 // 动画序号
   private target: HTMLElement // 动画操作的dom节点
   private duration: number = 0 // 动画持续时间(毫秒)
   private properties: any // 动画修改dom的属性
   private delay: number = 0 // 动画延时开始(毫秒)
   private endDelay: number = 0 // 动画结束延时(毫秒)
   private ease: string = '' // 动画时间函数
+  public paused: boolean = false // 暂停动画
+  public pausedStart: number = 0 // 暂停起始时间点
+  private aId: number = 0 // requestAnimationFrame标示符
 
   private begin?: () => {} // 动画开始回调
   private update?: () => {} // 动画每帧回调
@@ -63,37 +66,53 @@ export default class Anime {
     const self: Anime = this
     return new Promise((resolve, reject) => {
       let startTime: number = 0 // 动画开始时间点
-      let aId: number = 0 // requestAnimationFrame标示符
+      let pausedTime: number = 0 // 暂停时长
       // 缓动算法函数
       const tweenEasing = this.distinguishEase(this.ease)
       const easing = this.getCssEaseFunction(this.ease)
 
       function step (timestamp: number) {
         startTime = startTime || timestamp
-        // 目前运动经过的时长
-        const passed = timestamp - startTime
-        // 缓动因子
-        let p: number = passed > self.delay ? Math.min(1.0, (passed - self.delay) / self.duration) : 0
-        p = typeof tweenEasing === 'undefined' && easing ? easing(p) : p
-
-        // 利用缓动因子和算法更新dom
-        self.updateProperties(passed, p, tweenEasing)
-
-        if (p >= 1.0 && passed > self.duration + self.delay + self.endDelay) {
-          resolve(self)
+        if (self.paused) {
+          // 暂停动画，计算暂停时长
+          pausedTime = timestamp - self.pausedStart
         } else {
-          aId = requestAnimationFrame(step)
+          // 目前运动经过的时长
+          const passed = (timestamp - pausedTime) - startTime
+          // 缓动因子
+          let p: number = passed > self.delay ? Math.min(1.0, (passed - self.delay) / self.duration) : 0
+          p = typeof tweenEasing === 'undefined' && easing ? easing(p) : p
+
+          // 利用缓动因子和算法更新dom
+          self.updateProperties(passed, p, tweenEasing)
+
+          if (p >= 1.0 && passed > self.duration + self.delay + self.endDelay) {
+            resolve(self)
+          } else {
+            self.aId = requestAnimationFrame(step)
+          }
         }
       }
-      // console.log('动画', this.sequence)
+      console.log('动画', this.sequence)
 
       this.initStartNode()
-      aId = requestAnimationFrame(step)
+      self.aId = requestAnimationFrame(step)
     })
   }
 
+  /* 暂停动画 */
+  public pause () {
+    this.paused = true
+    this.pausedStart = Date.now()
+  }
+
+  /* 停止动画 */
+  public stop () {
+    cancelAnimationFrame(this.aId)
+  }
+
   /* 获取tween算法函数 */
-  distinguishEase (ease: string) {
+  private distinguishEase (ease: string) {
     switch (ease) {
       case 'elasticEaseIn':
         return Elastic.easeIn
@@ -118,7 +137,7 @@ export default class Anime {
   }
 
   /* 获取css timing-function */
-  getCssEaseFunction (ease: string) {
+  private getCssEaseFunction (ease: string) {
     if (ease.includes('cubic-bezier')) {
       const params = ease.replace(/cubic-bezier\(/g, '').replace(/\)/g, '').split(',')
       if (params.length !== 4) {
@@ -139,7 +158,7 @@ export default class Anime {
   }
 
   /* 更新属性 */
-  updateProperties (
+  private updateProperties (
     ts: number, percent: number,
     easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}) {
     for (const key of Object.keys(this.properties)) {
@@ -150,7 +169,7 @@ export default class Anime {
   }
 
   /* 更新transform变化 */
-  updateTransform (
+  private updateTransform (
     ts: number, key: string, val: number, percent: number,
     easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}) {
     if (!this.target) { return }
@@ -174,13 +193,13 @@ export default class Anime {
   }
 
   /* 根据缓动因子计算属性当前值 */
-  getCurrentValue (key: string, val: number, cur: number, p: number) {
+  private getCurrentValue (key: string, val: number, cur: number, p: number) {
     const start = this.startNode[key]
     return val >= start ? start + (val - start) * p : start - (start - val) * p
   }
 
   /* 获取dom属性原始值 */
-  getOriginValue (key: string) {
+  private getOriginValue (key: string) {
     const str = this.target.style.transform
     let res = 0
     if (str) {
