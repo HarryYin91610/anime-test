@@ -34,14 +34,6 @@ import AgileAnime from './lib/agile-anime'
 export default class App extends Vue {
   anime1: AgileAnime | null = null
   anime2: AgileAnime | null = null
-  anime3: AgileAnime | null = null
-  anime4: AgileAnime | null = null
-  anime5: AgileAnime | null = null
-  anime6: AgileAnime | null = null
-  anime7: AgileAnime | null = null
-  anime8: AgileAnime | null = null
-  anime9: AgileAnime | null = null
-  anime10: AgileAnime | null = null
 
   playBall (index: number, dirt: string = 'normal', loop: boolean = false) {
     const self: any = this
@@ -70,12 +62,21 @@ export default class App extends Vue {
   mounted () {
     this.$nextTick(() => {
       const dom = document.querySelector('#app #ball1') as HTMLElement
-      this.anime1 = new AgileAnime(dom, false)
+      this.anime1 = new AgileAnime(dom, false, 'normal',
+      (count) => {
+        console.log(`第${count}次动画开始！！！`)
+      },
+      (sq) => {
+        console.log(`动画阶段${sq}次执行中！！！`)
+      },
+      (count) => {
+        console.log(`第${count}次动画完成！！！`)
+      })
       this.anime1
       .animator(350, {
         translateX: 0,
         translateY: 0
-      }, 'ease-in')
+      }, 'ease-in', 0, 0)
       .animator(350, {
         translateX: 100,
         translateY: 0
@@ -103,124 +104,19 @@ export default class App extends Vue {
       .animator(350, {
         translateX: 100,
         translateY: 0
-      }, 'ease-in')
+      }, 'ease-in', 0, 0)
       .animator(350, {
         translateX: 100,
         translateY: 100
-      }, 'linear')
+      }, 'linear', 0, 0)
       .animator(350, {
         translateX: 0,
         translateY: 100
-      }, 'ease-in-out')
+      }, 'ease-in-out', 0, 0)
       .animator(350, {
         translateX: 0,
         translateY: 0
-      }, 'ease-out')
-
-      const dom3 = document.querySelector('#app #ball3') as HTMLElement
-      this.anime3 = new AgileAnime(dom3)
-      this.anime3
-      .animator(1000, {
-        translateY: 300
-      }, 'elasticEaseOut')
-      .animator(1000, {
-        translateX: 200,
-        translateY: 400
-      }, 'elasticEaseIn')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'elasticEaseInOut')
-
-      const dom4 = document.querySelector('#app #ball4') as HTMLElement
-      this.anime4 = new AgileAnime(dom4)
-      this.anime4
-      .animator(1000, {
-        translateY: 300
-      }, 'elasticEaseIn')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'bounceEaseOut')
-
-      const dom5 = document.querySelector('#app #ball5') as HTMLElement
-      this.anime5 = new AgileAnime(dom5, true)
-      this.anime5
-      .animator(2000, {
-        translateY: 300
-      }, 'bounceEaseIn')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'elasticEaseIn')
-
-      const dom6 = document.querySelector('#app #ball6') as HTMLElement
-      this.anime6 = new AgileAnime(dom6, true)
-      this.anime6
-      .animator(2000, {
-        translateY: 300
-      }, 'bounceEaseOut')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'backEaseOut')
-
-      const dom7 = document.querySelector('#app #ball7') as HTMLElement
-      this.anime7 = new AgileAnime(dom7, true)
-      this.anime7
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'bounceEaseInOut')
-      .animator(2000, {
-        translateX: 0,
-        translateY: 300
-      }, 'bounceEaseInOut')
-      .animator(1000, {
-        translateX: 300,
-        translateY: 300
-      }, 'elasticEaseOut')
-      .animator(1000, {
-        translateX: 300,
-        translateY: 0
-      }, 'bounceEaseOut')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'bounceEaseOut')
-
-      const dom8 = document.querySelector('#app #ball8') as HTMLElement
-      this.anime8 = new AgileAnime(dom8, true)
-      this.anime8
-      .animator(2000, {
-        translateY: 300
-      }, 'backEaseIn')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'backEaseOut')
-
-      const dom9 = document.querySelector('#app #ball9') as HTMLElement
-      this.anime9 = new AgileAnime(dom9, true)
-      this.anime9
-      .animator(2000, {
-        translateY: 300
-      }, 'backEaseOut')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'backEaseOut')
-
-      const dom10 = document.querySelector('#app #ball10') as HTMLElement
-      this.anime10 = new AgileAnime(dom10, true)
-      this.anime10
-      .animator(2000, {
-        translateY: 300
-      }, 'backEaseInOut')
-      .animator(1000, {
-        translateX: 0,
-        translateY: 0
-      }, 'backEaseOut')
+      }, 'ease-out', 0, 0)
     })
   }
 }

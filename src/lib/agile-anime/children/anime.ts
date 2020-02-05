@@ -2,27 +2,24 @@
 
 import { transformList } from '../setting'
 import { Elastic, Bounce, Back } from './tween'
-import { AnimeNode } from '../typings'
+import { IAnimeNode, TUpdating } from '../typings'
 import BezierEasing from 'bezier-easing'
 
 export default class Anime {
   public sequence: number = 0 // 动画序号
   private target: HTMLElement // 动画操作的dom节点
   private duration: number = 0 // 动画持续时间(毫秒)
-  private properties: any // 动画修改dom的属性
+  private properties: IAnimeNode // 动画修改dom的属性
   private delay: number = 0 // 动画延时开始(毫秒)
   private endDelay: number = 0 // 动画结束延时(毫秒)
   private ease: string = '' // 动画时间函数
   public paused: boolean = false // 暂停动画
   public pausedStart: number = 0 // 暂停起始时间点
   private aId: number = 0 // requestAnimationFrame标示符
-
-  private begin?: () => {} // 动画开始回调
-  private update?: () => {} // 动画每帧回调
-  private complete?: () => {} // 动画完成回调
+  private update?: TUpdating // 动画每帧回调
 
   // 起点
-  private startNode: AnimeNode = {}
+  private startNode: IAnimeNode = {}
   // transform变换
   private translateX: number = 0
   private translateY: number = 0
@@ -31,20 +28,18 @@ export default class Anime {
   constructor (
     sequence: number,
     target: HTMLElement,
-    duration: number, properties: object,
-    begin?: () => {}, update?: () => {}, complete?: () => {},
-    ease?: string, delay?: number, endDelay?: number) {
+    duration: number, properties: IAnimeNode,
+    ease?: string, delay?: number, endDelay?: number,
+    update?: TUpdating) {
 
     this.sequence = sequence
     this.target = target
     this.duration = duration || 0
     this.properties = properties
-    this.begin = begin
-    this.update = update
-    this.complete = complete
     this.delay = delay || 0
     this.endDelay = endDelay || 0
     this.ease = ease || 'linear'
+    this.update = update
   }
 
   /* 初始化dom信息 */
@@ -73,6 +68,10 @@ export default class Anime {
 
       function step (timestamp: number) {
         startTime = startTime || timestamp
+
+        // 动画更新每一帧时回调
+        self.update && self.update(self.sequence)
+
         if (self.paused) {
           // 暂停动画，计算暂停时长
           pausedTime = timestamp - self.pausedStart
@@ -93,7 +92,7 @@ export default class Anime {
           }
         }
       }
-      console.log('动画', this.sequence)
+      // console.log('动画', this.sequence)
 
       this.initStartNode()
       self.aId = requestAnimationFrame(step)

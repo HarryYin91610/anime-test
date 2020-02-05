@@ -1,10 +1,13 @@
 type DirtType = 'normal' | 'reverse' | 'alternate'
 
-interface AnimeNode {
+type TCallback = (count: number) => void
+type TUpdating = (sq: number) => void
+
+interface IAnimeNode {
   translateX?: number
   translateY?: number
   translateZ?: number
   [propName: string]: any
 }
 
-export { DirtType, AnimeNode }
+export { DirtType, IAnimeNode, TCallback, TUpdating }

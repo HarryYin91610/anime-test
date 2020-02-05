@@ -2,7 +2,7 @@
 
 import './lib/polyfill'
 import Anime from './children/anime'
-import { DirtType } from './typings'
+import { IAnimeNode, DirtType, TCallback, TUpdating } from './typings'
 
 export default class AgileAnime {
   private target: HTMLElement // 动画操作的dom节点
@@ -13,23 +13,29 @@ export default class AgileAnime {
   private animeQueue: Anime[] = [] // 动画序列
   public playing: boolean = false // 播放状态
   private curAsq: number = 0 // 当前播放的动画序号：从1开始的整数，0 没有播放动画
+  private begin?: TCallback // 动画开始回调
+  private update?: TUpdating // 动画每帧回调
+  private complete?: TCallback // 动画完成回调
 
-  constructor (target: HTMLElement, loop?: boolean, direction?: DirtType) {
+  constructor (
+    target: HTMLElement, loop?: boolean, direction?: DirtType,
+    begin?: TCallback, update?: TUpdating, complete?: TCallback) {
     this.target = target
     this.loop = loop
     this.direction = direction || 'normal'
+    this.begin = begin
+    this.update = update
+    this.complete = complete
   }
 
   /* 创造一个动画节点 */
   public animator (
-    duration: number, properties: object,
-    ease?: string, delay?: number, endDelay?: number,
-    begin?: () => {}, update?: () => {}, complete?: () => {}): AgileAnime {
+    duration: number, properties: IAnimeNode,
+    ease?: string, delay?: number, endDelay?: number): AgileAnime {
     const sq: number = this.animeQueue.length + 1
     const anime: Anime = new Anime(
     sq, this.target, duration, properties,
-    begin, update, complete, ease,
-    delay, endDelay)
+    ease, delay, endDelay, this.update)
     this.animeQueue.push(anime)
     return this
   }
@@ -40,6 +46,8 @@ export default class AgileAnime {
       // 暂停状态不计数
       if (this.curAsq <= 0) {
         this.count++
+        // 动画开始时回调
+        this.begin && this.begin(this.count)
       }
       this.playing = true
       // 初始化curAsq（当前播放的动画序号）
@@ -65,6 +73,8 @@ export default class AgileAnime {
       }
       // 完整动画播放结束
       this.curAsq = 0
+      // 动画完成时回调
+      this.complete && this.complete(this.count)
       if (this.loop) {
         this.resetNode()
         this.play()
