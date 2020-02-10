@@ -33,6 +33,17 @@ div#app
   div.demo-panel
     div.ball-1(id="ball3")
 
+  //- rotate变化
+  div.button-wrap
+    div.button(@click="playBall(4, 'alternate', true)")
+      | play
+    div.button(@click="pauseBall(4)")
+      | pause
+    div.button(@click="stopBall(4)")
+      | stop
+  div.demo-panel
+    div.ball-2(id="ball4") ball
+
 </template>
 
 <script lang="ts">
@@ -44,6 +55,7 @@ export default class App extends Vue {
   anime1: AgileAnime | null = null
   anime2: AgileAnime | null = null
   anime3: AgileAnime | null = null
+  anime4: AgileAnime | null = null
 
   playBall (index: number, dirt: string = 'normal', loop: boolean = false) {
     const self: any = this
@@ -161,6 +173,25 @@ export default class App extends Vue {
         translateX: 0,
         translateY: 0
       }, 'linear')
+
+      const dom4 = document.querySelector('#app #ball4') as HTMLElement
+      this.anime4 = new AgileAnime(dom4, true)
+      this.anime4
+      .animator(350, {
+        rotate: 0
+      }, 'linear')
+      .animator(350, {
+        rotate: 60
+      }, 'linear')
+      .animator(350, {
+        rotate: -30
+      }, 'linear')
+      .animator(1000, {
+        rotate: 180
+      }, 'elasticEaseOut')
+      .animator(350, {
+        rotate: 0
+      }, 'linear')
     })
   }
 }
@@ -199,7 +230,11 @@ export default class App extends Vue {
   .ball-1
     background-color #FF83FA
   .ball-2
-    background-color blue
+    width 40px
+    height 40px
+    line-height 40px
+    color #ffffff
+    background-color #FF4040
   
   .button-wrap
     display flex

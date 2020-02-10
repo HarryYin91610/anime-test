@@ -14,10 +14,5 @@ export const transformList = [
   'rotateZ',
   'scale',
   'scaleX',
-  'scaleY',
-  'scaleZ',
-  'skew',
-  'skewX',
-  'skewY',
-  'perspective'
+  'scaleY'
 ]

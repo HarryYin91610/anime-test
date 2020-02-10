@@ -26,6 +26,10 @@ export default class Anime {
   private translateZ: number = 0
   private scaleX: number = 1
   private scaleY: number = 1
+  private rotate: number = 0
+  private rotateX: number = 0
+  private rotateY: number = 0
+  private rotateZ: number = 0
 
   constructor (
     sequence: number,
@@ -48,14 +52,8 @@ export default class Anime {
   private initStartNode () {
     const self: any = this
 
-    self.startNode = {
-      translateX: this.getOriginValue('translateX'),
-      translateY: this.getOriginValue('translateY'),
-      translateZ: this.getOriginValue('translateZ'),
-      scaleX: this.getOriginValue('scaleX'),
-      scaleY: this.getOriginValue('scaleY')
-    }
-    Object.keys(self.startNode).forEach((key, index) => {
+    transformList.forEach((key) => {
+      self.startNode[key] = this.getOriginValue(key)
       self[key] = self.startNode[key]
     })
   }
@@ -179,12 +177,16 @@ export default class Anime {
     const self: any = this
 
     const keyList = []
-    if (key === 'scale') {
-      keyList.push('scaleX')
-      keyList.push('scaleY')
-    } else {
-      keyList.push(key)
+    switch (true) {
+      case key === 'scale':
+        keyList.push('scaleX')
+        keyList.push('scaleY')
+        break
+      default:
+        keyList.push(key)
+        break
     }
+
     keyList.forEach((keyItem, index) => {
       if (self[keyItem] !== val) {
         self[keyItem] = easing ?
@@ -194,12 +196,13 @@ export default class Anime {
         self[keyItem] = self.getOriginValue(keyItem)
       }
     })
-    // if (key.includes('rotate')) {}
+
     // if (key.includes('skew')) {}
     // if (key.includes('perspective')) {}
     this.target.style.transform = `
     translateX(${this.translateX}px) translateY(${this.translateY}px) translateZ(${this.translateZ}px)
-     scaleX(${this.scaleX}) scaleY(${this.scaleY})`
+     scaleX(${this.scaleX}) scaleY(${this.scaleY})
+     rotate(${this.rotate}deg) rotateX(${this.rotateX}deg) rotateY(${this.rotateY}deg) rotateZ(${this.rotateZ}deg)`
   }
 
   /* 根据缓动因子计算属性当前值 */
@@ -214,13 +217,8 @@ export default class Anime {
     let res = key.indexOf('scale') > -1 ? 1 : 0 // 默认值
     if (str) {
       str.split(' ').some((type, index) => {
-        if (type.includes(key) && key.indexOf('translate') > -1) {
-          const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)\\D+\\)`, 'g')
-          res = Number(type.replace(reg, '$1'))
-          return true
-        }
-        if (type.includes(key) && key.indexOf('scale') > -1) {
-          const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)\\)`, 'g')
+        if (type.includes(key)) {
+          const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)\\D*\\)`, 'g')
           res = Number(type.replace(reg, '$1'))
           return true
         }
