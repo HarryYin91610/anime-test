@@ -24,6 +24,8 @@ export default class Anime {
   private translateX: number = 0
   private translateY: number = 0
   private translateZ: number = 0
+  private scaleX: number = 1
+  private scaleY: number = 1
 
   constructor (
     sequence: number,
@@ -49,7 +51,9 @@ export default class Anime {
     self.startNode = {
       translateX: this.getOriginValue('translateX'),
       translateY: this.getOriginValue('translateY'),
-      translateZ: this.getOriginValue('translateZ')
+      translateZ: this.getOriginValue('translateZ'),
+      scaleX: this.getOriginValue('scaleX'),
+      scaleY: this.getOriginValue('scaleY')
     }
     Object.keys(self.startNode).forEach((key, index) => {
       self[key] = self.startNode[key]
@@ -172,23 +176,30 @@ export default class Anime {
     ts: number, key: string, val: number, percent: number,
     easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}) {
     if (!this.target) { return }
-    // translate变化
-    if (key.includes('translate')) {
-      const self: any = this
-      if (self[key] !== val) {
-        self[key] = easing ?
-          easing(ts, this.startNode[key], val - this.startNode[key], this.duration) :
-          self.getCurrentValue(key, val, self[key], percent)
-      } else {
-        self[key] = self.getOriginValue(key)
-      }
+    const self: any = this
 
-      this.target.style.transform = `translateX(${this.translateX}px) translateY(${this.translateY}px) translateZ(${this.translateZ}px)`
+    const keyList = []
+    if (key === 'scale') {
+      keyList.push('scaleX')
+      keyList.push('scaleY')
+    } else {
+      keyList.push(key)
     }
+    keyList.forEach((keyItem, index) => {
+      if (self[keyItem] !== val) {
+        self[keyItem] = easing ?
+          easing(ts, this.startNode[keyItem], val - this.startNode[keyItem], this.duration) :
+          self.getCurrentValue(keyItem, val, self[keyItem], percent)
+      } else {
+        self[keyItem] = self.getOriginValue(keyItem)
+      }
+    })
     // if (key.includes('rotate')) {}
-    // if (key.includes('scale')) {}
     // if (key.includes('skew')) {}
     // if (key.includes('perspective')) {}
+    this.target.style.transform = `
+    translateX(${this.translateX}px) translateY(${this.translateY}px) translateZ(${this.translateZ}px)
+     scaleX(${this.scaleX}) scaleY(${this.scaleY})`
   }
 
   /* 根据缓动因子计算属性当前值 */
@@ -200,11 +211,16 @@ export default class Anime {
   /* 获取dom属性原始值 */
   private getOriginValue (key: string) {
     const str = this.target.style.transform
-    let res = 0
+    let res = key.indexOf('scale') > -1 ? 1 : 0 // 默认值
     if (str) {
       str.split(' ').some((type, index) => {
-        if (type.includes(key)) {
+        if (type.includes(key) && key.indexOf('translate') > -1) {
           const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)\\D+\\)`, 'g')
+          res = Number(type.replace(reg, '$1'))
+          return true
+        }
+        if (type.includes(key) && key.indexOf('scale') > -1) {
+          const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)\\)`, 'g')
           res = Number(type.replace(reg, '$1'))
           return true
         }

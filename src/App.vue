@@ -8,11 +8,10 @@ div#app
       | reverse
     div.button(@click="playBall(1, 'alternate', true)")
       | alternate
-  
   div.demo-panel
     div.ball-1(id="ball1")
 
-  //- 不同顺序播放
+  //- 播放、暂停、停止
   div.button-wrap
     div.button(@click="playBall(2, 'alternate', true)")
       | play
@@ -20,9 +19,19 @@ div#app
       | pause
     div.button(@click="stopBall(2)")
       | stop
-  
   div.demo-panel
     div.ball-1(id="ball2")
+
+  //- scale变化
+  div.button-wrap
+    div.button(@click="playBall(3, 'alternate', true)")
+      | play
+    div.button(@click="pauseBall(3)")
+      | pause
+    div.button(@click="stopBall(3)")
+      | stop
+  div.demo-panel
+    div.ball-1(id="ball3")
 
 </template>
 
@@ -34,6 +43,7 @@ import AgileAnime from './lib/agile-anime'
 export default class App extends Vue {
   anime1: AgileAnime | null = null
   anime2: AgileAnime | null = null
+  anime3: AgileAnime | null = null
 
   playBall (index: number, dirt: string = 'normal', loop: boolean = false) {
     const self: any = this
@@ -117,6 +127,40 @@ export default class App extends Vue {
         translateX: 0,
         translateY: 0
       }, 'ease-out', 0, 0)
+
+      const dom3 = document.querySelector('#app #ball3') as HTMLElement
+      this.anime3 = new AgileAnime(dom3, true)
+      this.anime3
+      .animator(1000, {
+        scale: 1,
+        translateX: 0,
+        translateY: 0
+      }, 'linear')
+      .animator(1000, {
+        scale: 1,
+        translateX: 100,
+        translateY: 0
+      }, 'linear')
+      .animator(750, {
+        scaleX: 2,
+        translateX: 100,
+        translateY: 0
+      }, 'elasticEaseOut')
+      .animator(750, {
+        scaleX: 1,
+        translateX: 100,
+        translateY: 100
+      }, 'elasticEaseOut')
+      .animator(750, {
+        scale: 1,
+        translateX: 0,
+        translateY: 100
+      }, 'linear')
+      .animator(1000, {
+        scale: 1,
+        translateX: 0,
+        translateY: 0
+      }, 'linear')
     })
   }
 }

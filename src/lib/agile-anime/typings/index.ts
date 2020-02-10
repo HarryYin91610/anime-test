@@ -7,6 +7,9 @@ interface IAnimeNode {
   translateX?: number
   translateY?: number
   translateZ?: number
+  scale?: number
+  scaleX?: number
+  scaleY?: number
   [propName: string]: any
 }
 
