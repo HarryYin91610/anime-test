@@ -90,8 +90,8 @@ export const Back = {
   },
   easeInOut (t: number, b: number, c: number, d: number, s?: number) {
     if (!s) { s = 1.70158 }
-    t /= d
-    if ((t / 2) < 1) { return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b }
+    t /= d / 2
+    if (t < 1) { return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b }
     return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b
   }
 }

@@ -7,6 +7,7 @@ import BezierEasing from 'bezier-easing'
 
 export default class Anime {
   public sequence: number = 0 // 动画序号
+  public total: number = 0 // 动画总阶段数
   private target: HTMLElement // 动画操作的dom节点
   private duration: number = 0 // 动画持续时间(毫秒)
   private properties: IAnimeNode // 动画修改dom的属性
@@ -17,6 +18,7 @@ export default class Anime {
   public pausedStart: number = 0 // 暂停起始时间点
   private aId: number = 0 // requestAnimationFrame标示符
   private update?: TUpdating // 动画每帧回调
+  private curPercent: number = 0 // 动画执行进度（百分比）
 
   // 起点
   private startNode: IAnimeNode = {}
@@ -71,9 +73,6 @@ export default class Anime {
       function step (timestamp: number) {
         startTime = startTime || timestamp
 
-        // 动画更新每一帧时回调
-        self.update && self.update(self.sequence)
-
         if (self.paused) {
           // 暂停动画，计算暂停时长
           pausedTime = timestamp - self.pausedStart
@@ -83,7 +82,7 @@ export default class Anime {
           // 缓动因子
           let p: number = passed > self.delay ? Math.min(1.0, (passed - self.delay) / self.duration) : 0
           p = typeof tweenEasing === 'undefined' && easing ? easing(p) : p
-
+          self.curPercent = Math.floor(100 * (p + self.sequence - 1) / self.total)
           // 利用缓动因子和算法更新dom
           self.updateProperties(passed, p, tweenEasing)
 
@@ -93,6 +92,8 @@ export default class Anime {
             self.aId = requestAnimationFrame(step)
           }
         }
+        // 动画更新每一帧时回调
+        self.update && self.update({sq: self.sequence, percent: self.curPercent })
       }
       // console.log('动画', this.sequence)
 

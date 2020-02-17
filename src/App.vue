@@ -84,114 +84,204 @@ export default class App extends Vue {
   mounted () {
     this.$nextTick(() => {
       const dom = document.querySelector('#app #ball1') as HTMLElement
-      this.anime1 = new AgileAnime(dom, false, 'normal',
-      (count) => {
-        console.log(`第${count}次动画开始！！！`)
-      },
-      (sq) => {
-        console.log(`动画阶段${sq}次执行中！！！`)
-      },
-      (count) => {
-        console.log(`第${count}次动画完成！！！`)
+      this.anime1 = new AgileAnime({
+        target: dom,
+        loop: false,
+        direction: 'normal',
+        // begin: (count) => {
+        //   console.log(`第${count}次动画开始！！！`)
+        // },
+        // update: ({sq, percent}) => {
+        //   console.log(`动画阶段${sq}次执行进度${percent}%！！！`)
+        // },
+        // complete: (count) => {
+        //   console.log(`第${count}次动画完成！！！`)
+        // }
       })
       this.anime1
-      .animator(350, {
-        translateX: 0,
-        translateY: 0
-      }, 'ease-in', 0, 0)
-      .animator(350, {
-        translateX: 100,
-        translateY: 0
-      }, 'ease-in')
-      .animator(350, {
-        translateX: 100,
-        translateY: 100
-      }, 'linear')
-      .animator(350, {
-        translateX: 0,
-        translateY: 100
-      }, 'ease-in-out')
-      .animator(350, {
-        translateX: 0,
-        translateY: 0
-      }, 'ease-out')
+      .animator({
+        duration: 350,
+        properties: {
+          translateX: 0,
+          translateY: 0
+        },
+        ease: 'ease-in',
+        delay: 0,
+        endDelay: 0
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          translateX: 100,
+          translateY: 0
+        },
+        ease: 'backEaseInOut'
+      })
+      // .animator({
+      //   duration: 350,
+      //   properties: {
+      //     translateX: 100,
+      //     translateY: 100
+      //   },
+      //   ease: 'linear'
+      // })
+      // .animator({
+      //   duration: 350,
+      //   properties: {
+      //     translateX: 0,
+      //     translateY: 100
+      //   },
+      //   ease: 'ease-in-out'
+      // })
+      // .animator({
+      //   duration: 350,
+      //   properties: {
+      //     translateX: 0,
+      //     translateY: 0
+      //   },
+      //   ease: 'ease-out'
+      // })
 
       const dom2 = document.querySelector('#app #ball2') as HTMLElement
-      this.anime2 = new AgileAnime(dom2)
+      this.anime2 = new AgileAnime({target: dom2})
       this.anime2
-      .animator(350, {
-        translateX: 0,
-        translateY: 0
-      }, 'ease-in')
-      .animator(350, {
-        translateX: 100,
-        translateY: 0
-      }, 'ease-in', 0, 0)
-      .animator(350, {
-        translateX: 100,
-        translateY: 100
-      }, 'linear', 0, 0)
-      .animator(350, {
-        translateX: 0,
-        translateY: 100
-      }, 'ease-in-out', 0, 0)
-      .animator(350, {
-        translateX: 0,
-        translateY: 0
-      }, 'ease-out', 0, 0)
+      .animator({
+        duration: 350,
+        properties: {
+          translateX: 0,
+          translateY: 0
+        },
+        ease: 'ease-in'
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          translateX: 100,
+          translateY: 0
+        },
+        ease: 'ease-in'
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          translateX: 100,
+          translateY: 100
+        },
+        ease: 'ease-in'
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          translateX: 0,
+          translateY: 100
+        },
+        ease: 'ease-in'
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          translateX: 0,
+          translateY: 0
+        },
+        ease: 'ease-in'
+      })
 
       const dom3 = document.querySelector('#app #ball3') as HTMLElement
-      this.anime3 = new AgileAnime(dom3, true)
+      this.anime3 = new AgileAnime({target: dom3, loop: true})
       this.anime3
-      .animator(1000, {
-        scale: 1,
-        translateX: 0,
-        translateY: 0
-      }, 'linear')
-      .animator(1000, {
-        scale: 1,
-        translateX: 100,
-        translateY: 0
-      }, 'linear')
-      .animator(750, {
-        scaleX: 2,
-        translateX: 100,
-        translateY: 0
-      }, 'elasticEaseOut')
-      .animator(750, {
-        scaleX: 1,
-        translateX: 100,
-        translateY: 100
-      }, 'elasticEaseOut')
-      .animator(750, {
-        scale: 1,
-        translateX: 0,
-        translateY: 100
-      }, 'linear')
-      .animator(1000, {
-        scale: 1,
-        translateX: 0,
-        translateY: 0
-      }, 'linear')
+      .animator({
+        duration: 1000,
+        properties: {
+          scale: 1,
+          translateX: 0,
+          translateY: 0
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 1000,
+        properties: {
+          scale: 1,
+          translateX: 100,
+          translateY: 0
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 1000,
+        properties: {
+          scale: 2,
+          translateX: 100,
+          translateY: 0
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 1000,
+        properties: {
+          scale: 1,
+          translateX: 100,
+          translateY: 100
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 1000,
+        properties: {
+          scale: 1,
+          translateX: 0,
+          translateY: 100
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 1000,
+        properties: {
+          scale: 1,
+          translateX: 0,
+          translateY: 0
+        },
+        ease: 'linear'
+      })
 
       const dom4 = document.querySelector('#app #ball4') as HTMLElement
-      this.anime4 = new AgileAnime(dom4, true)
+      this.anime4 = new AgileAnime({target: dom4, loop: true})
       this.anime4
-      .animator(350, {
-        rotate: 0
-      }, 'linear')
-      .animator(350, {
-        rotate: 60
-      }, 'linear')
-      .animator(350, {
-        rotate: -30
-      }, 'linear')
-      .animator(1000, {
-        rotate: 180
-      }, 'elasticEaseOut')
-      .animator(350, {
-        rotate: 0
-      }, 'linear')
+      .animator({
+        duration: 350,
+        properties: {
+          rotate: 0
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          rotate: 60
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          rotate: -30
+        },
+        ease: 'linear'
+      })
+      .animator({
+        duration: 1000,
+        properties: {
+          rotate: 180
+        },
+        ease: 'elasticEaseOut'
+      })
+      .animator({
+        duration: 350,
+        properties: {
+          rotate: 0
+        },
+        ease: 'linear'
+      })
     })
   }
 }

@@ -2,7 +2,7 @@
 
 import './lib/polyfill'
 import Anime from './children/anime'
-import { IAnimeNode, DirtType, TCallback, TUpdating } from './typings'
+import { IAgileAnimeOptions, IAnimeOptions, DirtType, TCallback, TUpdating } from './typings/index'
 
 export default class AgileAnime {
   private target: HTMLElement // 动画操作的dom节点
@@ -18,10 +18,9 @@ export default class AgileAnime {
   private complete?: TCallback // 动画完成回调
 
   constructor (
-    target: HTMLElement, loop?: boolean, direction?: DirtType,
-    begin?: TCallback, update?: TUpdating, complete?: TCallback) {
+    {target, loop, direction, begin, update, complete}: IAgileAnimeOptions) {
     this.target = target
-    this.loop = loop
+    this.loop = loop || false
     this.direction = direction || 'normal'
     this.begin = begin
     this.update = update
@@ -29,9 +28,7 @@ export default class AgileAnime {
   }
 
   /* 创造一个动画节点 */
-  public animator (
-    duration: number, properties: IAnimeNode,
-    ease?: string, delay?: number, endDelay?: number): AgileAnime {
+  public animator ({duration, properties, ease, delay, endDelay}: IAnimeOptions): AgileAnime {
     const sq: number = this.animeQueue.length + 1
     const anime: Anime = new Anime(
     sq, this.target, duration, properties,
@@ -91,6 +88,7 @@ export default class AgileAnime {
     for (const i in this.animeQueue) {
       if (this.animeQueue[i]) {
         const anime = this.animeQueue[i]
+        anime.total = this.animeQueue.length
         // 暂停后搜索继续播放的动画序号
         if (anime.sequence === this.curAsq) {
           anime.paused = false
@@ -107,6 +105,7 @@ export default class AgileAnime {
   private async playReverse () {
     for (let i = this.animeQueue.length - 1; i >= 0; i--) {
       const anime = this.animeQueue[i]
+      anime.total = this.animeQueue.length
       // 暂停后搜索继续播放的动画序号
       if (anime && anime.sequence === this.curAsq) {
         anime.paused = false
