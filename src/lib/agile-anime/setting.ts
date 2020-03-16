@@ -1,9 +1,6 @@
 /* ___ @HarryYin __ */
 
-/**
- * 有效的transform属性
- *
- */
+/* 有效的transform属性 */
 export const transformList = [
   'translateX',
   'translateY',

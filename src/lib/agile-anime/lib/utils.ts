@@ -1,12 +1,14 @@
+/* ___ @HarryYin __ */
 import { unitList } from '../setting'
 
-/* ___ @HarryYin __
- * 获取属性值单位，格式：1px */
+/* 获取属性值单位，格式：1px */
 export const getUnit = (val: number | string): string => {
   if (typeof val === 'number') { return '' }
   const unit = val.replace(/-?\d+\.?\d*(\D*)/, '$1')
   if (unitList.indexOf(unit) > -1) {
     return unit
+  } else {
+    console.log('不支持该数值单位：', unit)
   }
   return ''
 }

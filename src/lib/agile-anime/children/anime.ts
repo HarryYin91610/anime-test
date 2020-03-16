@@ -1,4 +1,5 @@
 /* ___ @HarryYin __ */
+
 import { transformList } from '../setting'
 import { getDefaultUnit, getUnit, getPureNumber, getKeyFromStyle, getValueFromStyle, getKeyList } from '../lib/utils'
 import Tween from '../lib/tween'
@@ -182,7 +183,7 @@ export default class Anime {
     if (!this.target) { return }
 
     const self: any = this
-    
+
     // 获取key值映射的属性列表
     const keylist = getKeyList(key)
     keylist.forEach((kitem) => {

@@ -1,5 +1,6 @@
-/* ___ @HarryYin __
- * t: current time（当前时间）；
+/* ___ @HarryYin __ */
+
+/* t: current time（当前时间）；
  * b: beginning value（初始值）；
  * c: change in value（变化量）；
  * d: duration（持续时间）。；
