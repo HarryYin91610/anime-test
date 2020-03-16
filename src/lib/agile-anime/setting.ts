@@ -16,3 +16,14 @@ export const transformList = [
   'scaleX',
   'scaleY'
 ]
+
+/* 有效的单位 */
+export const unitList = [
+  'px',
+  'em',
+  'rem',
+  'vw',
+  'vh',
+  'deg',
+  '%'
+]

@@ -4,10 +4,14 @@ div#app
   div.button-wrap
     div.button(@click="playBall(1)")
       | normal
-    div.button(@click="playBall(1, 'reverse', true)")
+    div.button(@click="playBall(1, 'reverse', false)")
       | reverse
     div.button(@click="playBall(1, 'alternate', true)")
       | alternate
+    div.button(@click="pauseBall(1)")
+      | pause
+    div.button(@click="stopBall(1)")
+      | stop
   div.demo-panel
     div.ball-1(id="ball1")
 
@@ -53,9 +57,6 @@ import AgileAnime from './lib/agile-anime'
 @Component
 export default class App extends Vue {
   anime1: AgileAnime | null = null
-  anime2: AgileAnime | null = null
-  anime3: AgileAnime | null = null
-  anime4: AgileAnime | null = null
 
   playBall (index: number, dirt: string = 'normal', loop: boolean = false) {
     const self: any = this
@@ -85,202 +86,56 @@ export default class App extends Vue {
     this.$nextTick(() => {
       const dom = document.querySelector('#app #ball1') as HTMLElement
       this.anime1 = new AgileAnime({
-        target: dom,
-        loop: false,
-        direction: 'normal',
-        // begin: (count) => {
-        //   console.log(`第${count}次动画开始！！！`)
-        // },
-        // update: ({sq, percent}) => {
-        //   console.log(`动画阶段${sq}次执行进度${percent}%！！！`)
-        // },
-        // complete: (count) => {
-        //   console.log(`第${count}次动画完成！！！`)
-        // }
+        target: dom
       })
+
       this.anime1
       .animator({
         duration: 350,
         properties: {
-          translateX: 0,
-          translateY: 0
-        },
-        ease: 'ease-in',
-        delay: 0,
-        endDelay: 0
+          translateX: '60px',
+          scaleX: 2
+        }
       })
       .animator({
         duration: 350,
         properties: {
-          translateX: 100,
-          translateY: 0
-        },
-        ease: 'backEaseInOut'
+          translateY: '60px',
+          scaleY: 2,
+          rotate: '180deg'
+        }
       })
-      // .animator({
-      //   duration: 350,
-      //   properties: {
-      //     translateX: 100,
-      //     translateY: 100
-      //   },
-      //   ease: 'linear'
-      // })
-      // .animator({
-      //   duration: 350,
-      //   properties: {
-      //     translateX: 0,
-      //     translateY: 100
-      //   },
-      //   ease: 'ease-in-out'
-      // })
-      // .animator({
-      //   duration: 350,
-      //   properties: {
-      //     translateX: 0,
-      //     translateY: 0
-      //   },
-      //   ease: 'ease-out'
-      // })
-
-      const dom2 = document.querySelector('#app #ball2') as HTMLElement
-      this.anime2 = new AgileAnime({target: dom2})
-      this.anime2
       .animator({
-        duration: 350,
+        duration: 1050,
+        ease: 'elasticEaseOut',
         properties: {
-          translateX: 0,
-          translateY: 0
-        },
-        ease: 'ease-in'
+          scale: 1.2
+        }
       })
       .animator({
         duration: 350,
         properties: {
-          translateX: 100,
-          translateY: 0
-        },
-        ease: 'ease-in'
+          translateX: '0px'
+        }
       })
       .animator({
         duration: 350,
         properties: {
-          translateX: 100,
-          translateY: 100
-        },
-        ease: 'ease-in'
+          translateY: '0px'
+        }
       })
       .animator({
-        duration: 350,
+        duration: 1050,
+        ease: 'elasticEaseOut',
         properties: {
-          translateX: 0,
-          translateY: 100
-        },
-        ease: 'ease-in'
+          scale: 0.5
+        }
       })
       .animator({
-        duration: 350,
+        duration: 1050,
         properties: {
-          translateX: 0,
-          translateY: 0
-        },
-        ease: 'ease-in'
-      })
-
-      const dom3 = document.querySelector('#app #ball3') as HTMLElement
-      this.anime3 = new AgileAnime({target: dom3, loop: true})
-      this.anime3
-      .animator({
-        duration: 1000,
-        properties: {
-          scale: 1,
-          translateX: 0,
-          translateY: 0
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 1000,
-        properties: {
-          scale: 1,
-          translateX: 100,
-          translateY: 0
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 1000,
-        properties: {
-          scale: 2,
-          translateX: 100,
-          translateY: 0
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 1000,
-        properties: {
-          scale: 1,
-          translateX: 100,
-          translateY: 100
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 1000,
-        properties: {
-          scale: 1,
-          translateX: 0,
-          translateY: 100
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 1000,
-        properties: {
-          scale: 1,
-          translateX: 0,
-          translateY: 0
-        },
-        ease: 'linear'
-      })
-
-      const dom4 = document.querySelector('#app #ball4') as HTMLElement
-      this.anime4 = new AgileAnime({target: dom4, loop: true})
-      this.anime4
-      .animator({
-        duration: 350,
-        properties: {
-          rotate: 0
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 350,
-        properties: {
-          rotate: 60
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 350,
-        properties: {
-          rotate: -30
-        },
-        ease: 'linear'
-      })
-      .animator({
-        duration: 1000,
-        properties: {
-          rotate: 180
-        },
-        ease: 'elasticEaseOut'
-      })
-      .animator({
-        duration: 350,
-        properties: {
-          rotate: 0
-        },
-        ease: 'linear'
+          rotate: '360deg'
+        }
       })
     })
   }
@@ -316,7 +171,7 @@ export default class App extends Vue {
     margin-left -10px
     margin-top -10px
     background-color red
-    border-radius 50%
+    // border-radius 50%
   .ball-1
     background-color #FF83FA
   .ball-2

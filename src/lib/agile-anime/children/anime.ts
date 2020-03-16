@@ -1,8 +1,8 @@
 /* ___ @HarryYin __ */
-
 import { transformList } from '../setting'
-import { Elastic, Bounce, Back } from './tween'
-import { IAnimeNode, TUpdating } from '../typings'
+import { getDefaultUnit, getUnit, getPureNumber, getKeyFromStyle, getValueFromStyle, getKeyList } from '../lib/utils'
+import Tween from '../lib/tween'
+import { IAnimeNode, TUpdating, ITween } from '../typings'
 import BezierEasing from 'bezier-easing'
 
 export default class Anime {
@@ -20,18 +20,18 @@ export default class Anime {
   private update?: TUpdating // 动画每帧回调
   private curPercent: number = 0 // 动画执行进度（百分比）
 
-  // 起点
+  // 初始化样式节点
   private startNode: IAnimeNode = {}
-  // transform变换
-  private translateX: number = 0
-  private translateY: number = 0
-  private translateZ: number = 0
+  // transform变换（记录dom实时样式值）
+  private translateX: number | string = 0
+  private translateY: number | string = 0
+  private translateZ: number | string = 0
   private scaleX: number = 1
   private scaleY: number = 1
-  private rotate: number = 0
-  private rotateX: number = 0
-  private rotateY: number = 0
-  private rotateZ: number = 0
+  private rotate: number | string = 0
+  private rotateX: number | string = 0
+  private rotateY: number | string = 0
+  private rotateZ: number | string = 0
 
   constructor (
     sequence: number,
@@ -50,14 +50,36 @@ export default class Anime {
     this.update = update
   }
 
-  /* 初始化dom信息 */
-  private initStartNode () {
+  /* 初始化dom样式值 */
+  private initStartNode (): void {
     const self: any = this
 
-    transformList.forEach((key) => {
-      self.startNode[key] = this.getOriginValue(key)
-      self[key] = self.startNode[key]
-    })
+    const str: string | null = this.target.style.transform
+    if (str) {
+      // 从现有行内样式初始化
+      str.split(' ').forEach((style) => {
+        const key: string = getKeyFromStyle(style)
+        if (style && transformList.indexOf(key) > -1) {
+          const val: string = getValueFromStyle(style)
+          const keylist = getKeyList(key)
+          keylist.forEach((kitem) => {
+            self[kitem] = val
+            self.startNode[kitem] = self[kitem]
+          })
+        } else {
+          console.log('不支持该样式修改：', key)
+        }
+      })
+    } else {
+      // 从properties初始化
+      Object.keys(this.properties).forEach((key) => {
+        const keylist = getKeyList(key)
+        keylist.forEach((kitem) => {
+          self[kitem] = kitem.indexOf('scale') > -1 ? 1 : 0
+          self.startNode[kitem] = self[kitem]
+        })
+      })
+    }
   }
 
   /* 播放动画 */
@@ -103,39 +125,19 @@ export default class Anime {
   }
 
   /* 暂停动画 */
-  public pause () {
+  public pause (): void {
     this.paused = true
     this.pausedStart = Date.now()
   }
 
   /* 停止动画 */
-  public stop () {
+  public stop (): void {
     cancelAnimationFrame(this.aId)
   }
 
   /* 获取tween算法函数 */
   private distinguishEase (ease: string) {
-    switch (ease) {
-      case 'elasticEaseIn':
-        return Elastic.easeIn
-      case 'elasticEaseOut':
-        return Elastic.easeOut
-      case 'elasticEaseInOut':
-        return Elastic.easeInOut
-      case 'bounceEaseIn':
-        return Bounce.easeIn
-      case 'bounceEaseOut':
-        return Bounce.easeOut
-      case 'bounceEaseInOut':
-        return Bounce.easeInOut
-      case 'backEaseIn':
-        return Back.easeIn
-      case 'backEaseOut':
-        return Back.easeOut
-      case 'backEaseInOut':
-        return Back.easeInOut
-    }
-    return undefined
+    return (Tween as ITween)[ease] || undefined
   }
 
   /* 获取css timing-function */
@@ -162,70 +164,91 @@ export default class Anime {
   /* 更新属性 */
   private updateProperties (
     ts: number, percent: number,
-    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}) {
+    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
     for (const key of Object.keys(this.properties)) {
       if (transformList.includes(key)) {
         this.updateTransform(ts, key, this.properties[key], percent, easing)
+      } else {
+        console.log('不支持该样式修改：', key)
       }
     }
   }
 
   /* 更新transform变化 */
   private updateTransform (
-    ts: number, key: string, val: number, percent: number,
-    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}) {
+    ts: number, key: string, val: number |  string, percent: number,
+    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
+
     if (!this.target) { return }
+
     const self: any = this
+    
+    // 获取key值映射的属性列表
+    const keylist = getKeyList(key)
+    keylist.forEach((kitem) => {
+      // 若变化属性不存在于startNode，则补充默认值
+      if (!this.startNode[kitem]) {
+        this.startNode[kitem] = kitem.indexOf('scale') > -1 ? 1 : 0 // 默认值
+      }
 
-    const keyList = []
-    switch (true) {
-      case key === 'scale':
-        keyList.push('scaleX')
-        keyList.push('scaleY')
-        break
-      default:
-        keyList.push(key)
-        break
-    }
-
-    keyList.forEach((keyItem, index) => {
-      if (self[keyItem] !== val) {
-        self[keyItem] = easing ?
-          easing(ts, this.startNode[keyItem], val - this.startNode[keyItem], this.duration) :
-          self.getCurrentValue(keyItem, val, self[keyItem], percent)
+      // 计算获取实时样式value
+      const pureV = typeof val === 'string' ? getPureNumber(val) : val
+      let unit = getUnit(val)
+      if (typeof val === 'number' && !unit) {
+        unit = getDefaultUnit(kitem)
+      }
+      if (getPureNumber(self[kitem]) !== pureV) {
+        // 未达到目标值时
+        const starV = getPureNumber(this.startNode[kitem])
+        const num = easing ?
+        easing(ts, starV, pureV - starV, this.duration) :
+        self.getCurrentValue(kitem, pureV, self[kitem], percent)
+        self[kitem] = num.toFixed(2) + unit
       } else {
-        self[keyItem] = self.getOriginValue(keyItem)
+        // 已达到目标值时
+        self[kitem] = self.getOriginValue(kitem)
       }
     })
 
-    // if (key.includes('skew')) {}
-    // if (key.includes('perspective')) {}
-    this.target.style.transform = `
-    translateX(${this.translateX}px) translateY(${this.translateY}px) translateZ(${this.translateZ}px)
-     scaleX(${this.scaleX}) scaleY(${this.scaleY})
-     rotate(${this.rotate}deg) rotateX(${this.rotateX}deg) rotateY(${this.rotateY}deg) rotateZ(${this.rotateZ}deg)`
+    // 更新dom样式
+    let str = ''
+    const skeyList = Object.keys(this.startNode)
+    skeyList.forEach((skey, sindex) => {
+      str += this.getTransformStr(skey)
+      if (sindex < skeyList.length - 1) {
+        str += ' '
+      }
+    })
+    this.target.style.transform = str
+  }
+
+  /* 获取transform样式字符串 */
+  private getTransformStr (key: string) {
+    return `${key}(${(this as any)[key]})`
   }
 
   /* 根据缓动因子计算属性当前值 */
-  private getCurrentValue (key: string, val: number, cur: number, p: number) {
-    const start = this.startNode[key]
+  private getCurrentValue (key: string, val: number, cur: number, p: number): number {
+    const start = getPureNumber(this.startNode[key])
     return val >= start ? start + (val - start) * p : start - (start - val) * p
   }
 
-  /* 获取dom属性原始值 */
-  private getOriginValue (key: string) {
+  /* 获取dom属性现有值 */
+  private getOriginValue (key: string): number | string {
     const str = this.target.style.transform
     let res = key.indexOf('scale') > -1 ? 1 : 0 // 默认值
+    let unit = '' // 单位
     if (str) {
-      str.split(' ').some((type, index) => {
-        if (type.includes(key)) {
-          const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)\\D*\\)`, 'g')
-          res = Number(type.replace(reg, '$1'))
+      str.split(' ').some((style, index) => {
+        if (style.includes(key)) {
+          const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)(\\D*)\\)`, 'g')
+          res = Number(style.replace(reg, '$1'))
+          unit = style.replace(reg, '$2')
           return true
         }
         return false
       })
     }
-    return res
+    return key.indexOf('scale') > -1 ? res : res + unit
   }
 }

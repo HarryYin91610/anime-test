@@ -1,4 +1,5 @@
-/* 优雅降级 */
+/* ___ @HarryYin __
+ * 优雅降级 */
 
 // 使用 Date.now 获取时间戳性能比使用 new Date().getTime 更高效
 if (!Date.now) {
