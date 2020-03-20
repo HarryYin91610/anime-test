@@ -3,7 +3,7 @@
 import { transformList } from '../setting'
 import { getDefaultUnit, getUnit, getPureNumber, getKeyFromStyle, getValueFromStyle, getKeyList } from '../lib/utils'
 import Tween from '../lib/tween'
-import { IAnimeNode, TUpdating, ITween } from '../typings'
+import { IAnimeNode, TUpdating, ITween, NumberGenerator } from '../typings'
 import BezierEasing from 'bezier-easing'
 
 export default class Anime {
@@ -12,7 +12,7 @@ export default class Anime {
   private targets: HTMLElement[] = [] // 动画操作的dom节点
   private duration: number = 0 // 动画持续时间(毫秒)
   private properties: IAnimeNode // 动画修改dom的属性
-  private delay: number = 0 // 动画延时开始(毫秒)
+  private delay: number[] = [] // 单个元素动画延时开始(毫秒)
   private endDelay: number = 0 // 动画结束延时(毫秒)
   private ease: string = '' // 动画时间函数
   public paused: boolean = false // 暂停动画
@@ -38,17 +38,31 @@ export default class Anime {
     sequence: number,
     targets: HTMLElement[],
     duration: number, properties: IAnimeNode,
-    ease?: string, delay?: number, endDelay?: number,
+    ease?: string, delay?: number | NumberGenerator, endDelay?: number,
     update?: TUpdating) {
 
     this.sequence = sequence
     this.targets = targets
     this.duration = duration || 0
     this.properties = properties
-    this.delay = delay || 0
+    if (delay) {
+      this.initDelay(delay)
+    }
     this.endDelay = endDelay || 0
     this.ease = ease || 'linear'
     this.update = update
+  }
+
+  /* 初始化delay值 */
+  private initDelay (delay: number | NumberGenerator) {
+    if (typeof delay === 'function') {
+      this.targets.forEach((target, tindex) => {
+        const num = delay(target, tindex)
+        this.delay.push(num)
+      })
+    } else if (typeof delay === 'number') {
+      this.delay.push(delay)
+    }
   }
 
   /* 初始化dom样式值 */
@@ -107,21 +121,31 @@ export default class Anime {
         } else {
           // 目前运动经过的时长
           const passed = (timestamp - pausedTime) - startTime
-          // 缓动因子
-          let p: number = passed > self.delay ? Math.min(1.0, (passed - self.delay) / self.duration) : 0
-          p = typeof tweenEasing === 'undefined' && easing ? easing(p) : p
-          self.curPercent = Math.floor(100 * (p + self.sequence - 1) / self.total)
-          // 利用缓动因子和算法更新dom
-          self.updateProperties(passed, p, tweenEasing)
 
-          if (p >= 1.0 && passed > self.duration + self.delay + self.endDelay) {
+          let totalP = 0
+          self.targets.forEach((target, tindex) => {
+            // 缓动因子
+            const subDelay = self.delay[tindex] || 0
+            const subPassed = passed > subDelay ? passed - subDelay : 0
+            let p: number = subPassed ? Math.min(1.0, (subPassed) / self.duration) : 0
+            p = typeof tweenEasing === 'undefined' && easing ? easing(p) : p
+            totalP += p
+            // 利用缓动因子和算法更新dom
+            self.updateProperties(tindex, subPassed, p, tweenEasing)
+          })
+
+          totalP /= 4
+          self.curPercent = Math.floor(100 * (totalP + self.sequence - 1) / self.total)
+          const totalDelay = self.delay[self.targets.length - 1] || 0
+          if (totalP >= 1.0 && passed > self.duration + totalDelay + self.endDelay) {
             resolve(self)
           } else {
             self.aId = requestAnimationFrame(step)
           }
         }
+
         // 动画更新每一帧时回调
-        self.update && self.update({sq: self.sequence, percent: self.curPercent })
+        self.update && self.update({ sq: self.sequence, percent: self.curPercent })
       }
       // console.error('动画', this.sequence)
 
@@ -169,11 +193,11 @@ export default class Anime {
 
   /* 更新属性 */
   private updateProperties (
-    ts: number, percent: number,
+    tindex: number, ts: number, percent: number,
     easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
     for (const key of Object.keys(this.properties)) {
       if (transformList.includes(key)) {
-        this.updateTransform(ts, key, this.properties[key], percent, easing)
+        this.updateTransform(tindex, ts, key, this.properties[key], percent, easing)
       } else {
         console.error('不支持该样式修改：', key)
       }
@@ -182,7 +206,7 @@ export default class Anime {
 
   /* 更新transform变化 */
   private updateTransform (
-    ts: number, key: string, val: number |  string, percent: number,
+    tindex: number, ts: number, key: string, val: number |  string, percent: number,
     easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
 
     if (!this.targets || this.targets.length === 0) {
@@ -191,49 +215,48 @@ export default class Anime {
     }
 
     const self: any = this
+    const target = this.targets[tindex]
 
-    this.targets.forEach((target, tindex) => {
-      // 获取key值映射的属性列表
-      const keylist = getKeyList(key)
-      keylist.forEach((kitem) => {
-        // 若变化属性不存在于startNode，则补充默认值
-        const startnode = this.startNode[tindex]
-        if (!startnode || !startnode[kitem]) {
-          startnode[kitem] = kitem.indexOf('scale') > -1 ? 1 : 0 // 默认值
-        }
+    // 获取key值映射的属性列表
+    const keylist = getKeyList(key)
+    keylist.forEach((kitem) => {
+      // 若变化属性不存在于startNode，则补充默认值
+      const startnode = this.startNode[tindex]
+      if (!startnode || !startnode[kitem]) {
+        startnode[kitem] = kitem.indexOf('scale') > -1 ? 1 : 0 // 默认值
+      }
 
-        // 计算获取实时样式value
-        const pureV = typeof val === 'string' ? getPureNumber(val) : val
-        let unit = getUnit(val)
-        if (typeof val === 'number' && !unit) {
-          unit = getDefaultUnit(kitem)
-        }
+      // 计算获取实时样式value
+      const pureV = typeof val === 'string' ? getPureNumber(val) : val
+      let unit = getUnit(val)
+      if (typeof val === 'number' && !unit) {
+        unit = getDefaultUnit(kitem)
+      }
 
-        const curVal = self[kitem][tindex]
-        if (curVal && getPureNumber(curVal) !== pureV) {
-          // 未达到目标值时
-          const starV = getPureNumber(this.startNode[tindex][kitem])
-          const num = easing ?
-          easing(ts, starV, pureV - starV, this.duration) :
-          self.getCurrentValue(tindex, kitem, pureV, curVal, percent)
-          self[kitem][tindex] = num.toFixed(2) + unit
-        } else {
-          // 已达到目标值时
-          self[kitem][tindex] = self.getOriginValue(tindex, kitem)
-        }
-      })
-
-      // 更新dom样式
-      let str = ''
-      const skeyList = Object.keys(this.startNode[tindex])
-      skeyList.forEach((skey, sindex) => {
-        str += this.getTransformStr(tindex, skey)
-        if (sindex < skeyList.length - 1) {
-          str += ' '
-        }
-      })
-      target.style.transform = str
+      const curVal = self[kitem][tindex]
+      if (curVal && getPureNumber(curVal) !== pureV) {
+        // 未达到目标值时
+        const starV = getPureNumber(this.startNode[tindex][kitem])
+        const num = easing ?
+        easing(ts, starV, pureV - starV, this.duration) :
+        self.getCurrentValue(tindex, kitem, pureV, curVal, percent)
+        self[kitem][tindex] = num.toFixed(2) + unit
+      } else {
+        // 已达到目标值时
+        self[kitem][tindex] = self.getOriginValue(tindex, kitem)
+      }
     })
+
+    // 更新dom样式
+    let str = ''
+    const skeyList = Object.keys(this.startNode[tindex])
+    skeyList.forEach((skey, sindex) => {
+      str += this.getTransformStr(tindex, skey)
+      if (sindex < skeyList.length - 1) {
+        str += ' '
+      }
+    })
+    target.style.transform = str
   }
 
   /* 获取transform样式字符串 */

@@ -2,6 +2,7 @@ type DirtType = 'normal' | 'reverse' | 'alternate'
 type TargetType = HTMLElement | HTMLElement[] | string | string[]
 type TCallback = (count: number) => void
 type TUpdating = ({sq, percent}: IUpdateOptions) => void
+type NumberGenerator = (el: HTMLElement, i: number) => number
 
 interface IAgileAnimeOptions {
   target: TargetType
@@ -16,7 +17,7 @@ interface IAnimeOptions {
   duration: number
   properties: IAnimeNode
   ease?: string
-  delay?: number
+  delay?: number | NumberGenerator
   endDelay?: number
 }
 
@@ -83,4 +84,4 @@ export class Anime {
   stop(): void
 }
 
-export { IAgileAnimeOptions, IAnimeOptions, DirtType, TargetType, IAnimeNode, TCallback, TUpdating, ITween }
+export { IAgileAnimeOptions, IAnimeOptions, DirtType, TargetType, NumberGenerator, IAnimeNode, TCallback, TUpdating, ITween }

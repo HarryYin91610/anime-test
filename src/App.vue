@@ -100,6 +100,9 @@ export default class App extends Vue {
       this.anime1
       .animator({
         duration: 350,
+        delay: (el, i) => {
+          return i * 100
+        },
         properties: {
           scale: 5
         }
