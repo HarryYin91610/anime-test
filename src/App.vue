@@ -4,49 +4,52 @@ div#app
   div.button-wrap
     div.button(@click="playBall(1)")
       | normal
-    div.button(@click="playBall(1, 'reverse', false)")
-      | reverse
-    div.button(@click="playBall(1, 'alternate', true)")
-      | alternate
+    //- div.button(@click="playBall(1, 'reverse', false)")
+    //-   | reverse
+    //- div.button(@click="playBall(1, 'alternate', true)")
+    //-   | alternate
     div.button(@click="pauseBall(1)")
       | pause
     div.button(@click="stopBall(1)")
       | stop
   div.demo-panel
     div.ball-1(id="ball1")
+    div.ball-1(id="ball2")
+    div.ball-1(id="ball3")
+    div.ball-1(id="ball4")
 
   //- 播放、暂停、停止
-  div.button-wrap
-    div.button(@click="playBall(2, 'alternate', true)")
-      | play
-    div.button(@click="pauseBall(2)")
-      | pause
-    div.button(@click="stopBall(2)")
-      | stop
-  div.demo-panel
-    div.ball-1(id="ball2")
+  //- div.button-wrap
+  //-   div.button(@click="playBall(2, 'alternate', true)")
+  //-     | play
+  //-   div.button(@click="pauseBall(2)")
+  //-     | pause
+  //-   div.button(@click="stopBall(2)")
+  //-     | stop
+  //- div.demo-panel
+  //-   div.ball-1(id="ball2")
 
   //- scale变化
-  div.button-wrap
-    div.button(@click="playBall(3, 'alternate', true)")
-      | play
-    div.button(@click="pauseBall(3)")
-      | pause
-    div.button(@click="stopBall(3)")
-      | stop
-  div.demo-panel
-    div.ball-1(id="ball3")
+  //- div.button-wrap
+  //-   div.button(@click="playBall(3, 'alternate', true)")
+  //-     | play
+  //-   div.button(@click="pauseBall(3)")
+  //-     | pause
+  //-   div.button(@click="stopBall(3)")
+  //-     | stop
+  //- div.demo-panel
+  //-   div.ball-1(id="ball3")
 
   //- rotate变化
-  div.button-wrap
-    div.button(@click="playBall(4, 'alternate', true)")
-      | play
-    div.button(@click="pauseBall(4)")
-      | pause
-    div.button(@click="stopBall(4)")
-      | stop
-  div.demo-panel
-    div.ball-2(id="ball4") ball
+  //- div.button-wrap
+  //-   div.button(@click="playBall(4, 'alternate', true)")
+  //-     | play
+  //-   div.button(@click="pauseBall(4)")
+  //-     | pause
+  //-   div.button(@click="stopBall(4)")
+  //-     | stop
+  //- div.demo-panel
+  //-   div.ball-2(id="ball4") ball
 
 </template>
 
@@ -84,57 +87,62 @@ export default class App extends Vue {
 
   mounted () {
     this.$nextTick(() => {
-      const dom = document.querySelector('#app #ball1') as HTMLElement
+      const list: HTMLElement[] = [
+        document.querySelector('#app #ball1') as HTMLElement,
+        document.querySelector('#app #ball4') as HTMLElement
+      ]
       this.anime1 = new AgileAnime({
-        target: dom
+        target: ['#app #ball1', '#app #ball2', '#app #ball3', '#app #ball4']
+        // target: '#app #ball1'
+        // target: list
       })
 
       this.anime1
       .animator({
         duration: 350,
         properties: {
-          translateX: '60px',
-          scaleX: 2
+          scale: 5
         }
       })
       .animator({
-        duration: 350,
+        duration: 750,
+        ease: 'elasticEaseOut',
         properties: {
-          translateY: '60px',
-          scaleY: 2,
-          rotate: '180deg'
+          scale: 1
         }
       })
       .animator({
         duration: 1050,
         ease: 'elasticEaseOut',
         properties: {
-          scale: 1.2
+          translateX: '60px'
         }
       })
       .animator({
         duration: 350,
+        ease: 'elasticEaseOut',
+        properties: {
+          translateX: '-60px'
+        }
+      })
+      .animator({
+        duration: 750,
+        ease: 'elasticEaseOut',
         properties: {
           translateX: '0px'
         }
       })
       .animator({
-        duration: 350,
+        duration: 150,
+        properties: {
+          translateY: '-200px'
+        }
+      })
+      .animator({
+        duration: 1050,
+        ease: 'bounceEaseOut',
         properties: {
           translateY: '0px'
-        }
-      })
-      .animator({
-        duration: 1050,
-        ease: 'elasticEaseOut',
-        properties: {
-          scale: 0.5
-        }
-      })
-      .animator({
-        duration: 1050,
-        properties: {
-          rotate: '360deg'
         }
       })
     })
@@ -163,13 +171,9 @@ export default class App extends Vue {
   color #2c3e50
   margin-top 60px
   .ball-1, .ball-2
-    position absolute
-    left 50%
-    top 50%
     width 20px
     height 20px
-    margin-left -10px
-    margin-top -10px
+    margin-right 10px
     background-color red
     // border-radius 50%
   .ball-1
@@ -206,6 +210,9 @@ export default class App extends Vue {
     width 400px
     height 400px
     margin 0 auto 20px
+    display flex
+    justify-content center
+    align-items center
     margin-top 10px
     background-color #E0EEEE
     box-shadow 2px 2px 5px 2px rgba(0,0,0,0.3)

@@ -1,5 +1,10 @@
+type DirtType = 'normal' | 'reverse' | 'alternate'
+type TargetType = HTMLElement | HTMLElement[] | string | string[]
+type TCallback = (count: number) => void
+type TUpdating = ({sq, percent}: IUpdateOptions) => void
+
 interface IAgileAnimeOptions {
-  target: HTMLElement
+  target: TargetType
   loop?: boolean
   direction?: DirtType
   begin?: TCallback
@@ -38,15 +43,10 @@ interface ITween {
   [propName: string]: (t: number, b: number, c: number, d: number, s?: number, a?: number, p?: number) => number
 }
 
-type DirtType = 'normal' | 'reverse' | 'alternate'
-
-type TCallback = (count: number) => void
-type TUpdating = ({sq, percent}: IUpdateOptions) => void
-
 export class Anime {
   public sequence: number // 动画序号
   public total: number // 动画总阶段数
-  private target: HTMLElement // 动画操作的dom节点
+  private target: HTMLElement | string // 动画操作的dom节点
   private duration: number // 动画持续时间(毫秒)
   private properties: IAnimeNode // 动画修改dom的属性
   private delay: number // 动画延时开始(毫秒)
@@ -83,4 +83,4 @@ export class Anime {
   stop(): void
 }
 
-export { IAgileAnimeOptions, IAnimeOptions, DirtType, IAnimeNode, TCallback, TUpdating, ITween }
+export { IAgileAnimeOptions, IAnimeOptions, DirtType, TargetType, IAnimeNode, TCallback, TUpdating, ITween }

@@ -3,12 +3,19 @@
 /* 优雅降级
  * 使用 Date.now 获取时间戳性能比使用 new Date().getTime 更高效 */
 if (!Date.now) {
-  Date.now = function() {
+  Date.now = function () {
     return new Date().getTime();
   };
 }
 
-(function() {
+/* Array.isArray降级处理 */
+if (!Array.isArray) {
+  Array.isArray = function (arg) {
+    return Object.prototype.toString.call(arg) === '[object, Array]';
+  }
+}
+
+(function () {
   "use strict";
 
   var vendors = ["webkit", "moz"];

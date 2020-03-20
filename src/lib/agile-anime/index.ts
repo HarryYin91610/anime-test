@@ -2,10 +2,10 @@
 
 import './lib/polyfill'
 import Anime from './children/anime'
-import { IAgileAnimeOptions, IAnimeOptions, DirtType, TCallback, TUpdating } from './typings/index'
+import { IAgileAnimeOptions, IAnimeOptions, DirtType, TargetType, TCallback, TUpdating } from './typings/index'
 
 export default class AgileAnime {
-  private target: HTMLElement // 动画操作的dom节点
+  private targets: HTMLElement[] = []// 动画操作的dom节点列表
   public loop?: boolean = false // 是否循环
   private count: number = 0 // 当前播放次数
   public direction?: DirtType = 'normal' // 动画播放的方向：normal 正向，reverse 反向，alternate 奇数次正向 && 偶数次反向
@@ -19,7 +19,15 @@ export default class AgileAnime {
 
   constructor (
     {target, loop, direction, begin, update, complete}: IAgileAnimeOptions) {
-    this.target = target
+
+    if (Array.isArray(target)) {
+      target.forEach((ele: HTMLElement | string) => {
+        this.initTarget(ele)
+      })
+    } else {
+      this.initTarget(target)
+    }
+
     this.loop = loop || false
     this.direction = direction || 'normal'
     this.begin = begin
@@ -27,11 +35,23 @@ export default class AgileAnime {
     this.complete = complete
   }
 
+  /* 初始化dom数组 */
+  private initTarget (target: HTMLElement | string) {
+    if (typeof target === 'string' && document.querySelector(target)) {
+      this.targets.push(document.querySelector(target) as HTMLElement)
+    } else if (typeof target === 'object' && target.nodeType === 1) {
+      this.targets.push(target)
+    } else {
+      console.error('target不合法！~')
+      return
+    }
+  }
+
   /* 创造一个动画节点 */
   public animator ({duration, properties, ease, delay, endDelay}: IAnimeOptions): AgileAnime {
     const sq: number = this.animeQueue.length + 1
     const anime: Anime = new Anime(
-    sq, this.target, duration, properties,
+    sq, this.targets, duration, properties,
     ease, delay, endDelay, this.update)
     this.animeQueue.push(anime)
     return this
@@ -40,6 +60,10 @@ export default class AgileAnime {
   /* 播放动画 */
   public async play () {
     try {
+      if (!this.targets || this.targets.length === 0) {
+        console.error('target不能为空!!!')
+        return
+      }
       // 暂停状态不计数
       if (this.curAsq <= 0) {
         this.count++
@@ -79,7 +103,7 @@ export default class AgileAnime {
         this.playing = false
       }
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
@@ -144,8 +168,10 @@ export default class AgileAnime {
     })
   }
 
-  /* 重置target样式 */
+  /* 重置targets样式 */
   private resetNode () {
-    this.target.style.transform = ''
+    this.targets.forEach((dom, index) => {
+      dom.style.transform = ''
+    })
   }
 }
