@@ -101,7 +101,7 @@ export default class App extends Vue {
       .animator({
         duration: 350,
         delay: (el, i) => {
-          return i * 100
+          return 500 - i * 100
         },
         properties: {
           scale: 5

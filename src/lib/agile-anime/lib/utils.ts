@@ -61,3 +61,14 @@ export const getKeyList = (key: string): string[] => {
   return list
 }
 
+/* 获取数组中最大值 */
+export const getMaxFromArray = (list: number[]) => {
+  let temp = 0
+  list.forEach((val) => {
+    if (val > temp) {
+      temp = val
+    }
+  })
+  return temp
+}
+

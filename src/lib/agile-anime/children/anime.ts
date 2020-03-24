@@ -1,7 +1,7 @@
 /* ___ @HarryYin __ */
 
 import { transformList } from '../setting'
-import { getDefaultUnit, getUnit, getPureNumber, getKeyFromStyle, getValueFromStyle, getKeyList } from '../lib/utils'
+import { getDefaultUnit, getUnit, getPureNumber, getKeyFromStyle, getValueFromStyle, getKeyList, getMaxFromArray } from '../lib/utils'
 import Tween from '../lib/tween'
 import { IAnimeNode, TUpdating, ITween, NumberGenerator } from '../typings'
 import BezierEasing from 'bezier-easing'
@@ -136,7 +136,7 @@ export default class Anime {
 
           totalP /= 4
           self.curPercent = Math.floor(100 * (totalP + self.sequence - 1) / self.total)
-          const totalDelay = self.delay[self.targets.length - 1] || 0
+          const totalDelay = getMaxFromArray(self.delay) || 0
           if (totalP >= 1.0 && passed > self.duration + totalDelay + self.endDelay) {
             resolve(self)
           } else {
