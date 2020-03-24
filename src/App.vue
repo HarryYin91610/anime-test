@@ -103,7 +103,6 @@ export default class App extends Vue {
         delay: (el, i) => {
           return 500 - i * 200
         },
-        // delay: 1000,
         properties: {
           scale: 5
         }
@@ -111,6 +110,9 @@ export default class App extends Vue {
       .animator({
         duration: 750,
         ease: 'elasticEaseOut',
+        delay: (el, i) => {
+          return 500 - i * 200
+        },
         properties: {
           scale: 1
         }

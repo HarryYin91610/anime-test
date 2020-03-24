@@ -13,7 +13,6 @@ export default class Anime {
   private duration: number = 0 // 动画持续时间(毫秒)
   private properties: IAnimeNode // 动画修改dom的属性
   private delay: number[] = [] // 单个元素动画延时开始(毫秒)
-  private endDelay: number = 0 // 动画结束延时(毫秒)
   private ease: string = '' // 动画时间函数
   public paused: boolean = false // 暂停动画
   public pausedStart: number = 0 // 暂停起始时间点
@@ -38,7 +37,7 @@ export default class Anime {
     sequence: number,
     targets: HTMLElement[],
     duration: number, properties: IAnimeNode,
-    ease?: string, delay?: number | NumberGenerator, endDelay?: number,
+    ease?: string, delay?: number | NumberGenerator,
     update?: TUpdating) {
 
     this.sequence = sequence
@@ -46,23 +45,22 @@ export default class Anime {
     this.duration = duration || 0
     this.properties = properties
     if (delay) {
-      this.initDelay(delay)
+      this.initDelays(delay, this.delay)
     }
-    this.endDelay = endDelay || 0
     this.ease = ease || 'linear'
     this.update = update
   }
 
   /* 初始化delay值 */
-  private initDelay (delay: number | NumberGenerator) {
+  private initDelays (delay: number | NumberGenerator, list: number[]) {
     if (typeof delay === 'function') {
       this.targets.forEach((target, tindex) => {
         const num = delay(target, tindex)
-        this.delay.push(num)
+        list.push(num)
       })
     } else if (typeof delay === 'number') {
       this.targets.forEach((target, tindex) => {
-        this.delay.push(delay)
+        list.push(delay)
       })
     }
   }
@@ -141,9 +139,9 @@ export default class Anime {
 
           totalP /= self.targets.length
           self.curPercent = Math.floor(100 * (totalP + self.sequence - 1) / self.total)
-          const totalDelay = getMaxFromArray(self.delay) || 0
+          const maxDelay = getMaxFromArray(self.delay) || 0
 
-          if (totalP >= 1.0 && passed > self.duration + totalDelay + self.endDelay) {
+          if (totalP >= 1.0 && passed > self.duration + maxDelay) {
             resolve(self)
           } else {
             self.aId = requestAnimationFrame(step)

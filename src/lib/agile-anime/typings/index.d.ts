@@ -18,7 +18,6 @@ interface IAnimeOptions {
   properties: IAnimeNode
   ease?: string
   delay?: number | NumberGenerator
-  endDelay?: number
 }
 
 interface IAnimeNode {
@@ -51,7 +50,6 @@ export class Anime {
   private duration: number // 动画持续时间(毫秒)
   private properties: IAnimeNode // 动画修改dom的属性
   private delay: number // 动画延时开始(毫秒)
-  private endDelay: number // 动画结束延时(毫秒)
   private ease: string // 动画时间函数
   public paused: boolean // 暂停动画
   public pausedStart: number // 暂停起始时间点
@@ -75,7 +73,7 @@ export class Anime {
   constructor(sequence: number,
     target: HTMLElement,
     duration: number, properties: IAnimeNode,
-    ease?: string, delay?: number, endDelay?: number,
+    ease?: string, delay?: number,
     update?: TUpdating)
 
   initStartNode(): void

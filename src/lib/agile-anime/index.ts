@@ -48,11 +48,11 @@ export default class AgileAnime {
   }
 
   /* 创造一个动画节点 */
-  public animator ({duration, properties, ease, delay, endDelay}: IAnimeOptions): AgileAnime {
+  public animator ({duration, properties, ease, delay}: IAnimeOptions): AgileAnime {
     const sq: number = this.animeQueue.length + 1
     const anime: Anime = new Anime(
     sq, this.targets, duration, properties,
-    ease, delay, endDelay, this.update)
+    ease, delay, this.update)
     this.animeQueue.push(anime)
     return this
   }
