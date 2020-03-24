@@ -61,7 +61,9 @@ export default class Anime {
         this.delay.push(num)
       })
     } else if (typeof delay === 'number') {
-      this.delay.push(delay)
+      this.targets.forEach((target, tindex) => {
+        this.delay.push(delay)
+      })
     }
   }
 
@@ -127,16 +129,20 @@ export default class Anime {
             // 缓动因子
             const subDelay = self.delay[tindex] || 0
             const subPassed = passed > subDelay ? passed - subDelay : 0
-            let p: number = subPassed ? Math.min(1.0, (subPassed) / self.duration) : 0
+            let p: number = subPassed ? Math.min(1.0, subPassed / self.duration) : 0
             p = typeof tweenEasing === 'undefined' && easing ? easing(p) : p
             totalP += p
             // 利用缓动因子和算法更新dom
-            self.updateProperties(tindex, subPassed, p, tweenEasing)
+            self.updateProperties(
+              tindex,
+              subPassed > self.duration ? self.duration : subPassed,
+              p, tweenEasing)
           })
 
-          totalP /= 4
+          totalP /= self.targets.length
           self.curPercent = Math.floor(100 * (totalP + self.sequence - 1) / self.total)
           const totalDelay = getMaxFromArray(self.delay) || 0
+
           if (totalP >= 1.0 && passed > self.duration + totalDelay + self.endDelay) {
             resolve(self)
           } else {

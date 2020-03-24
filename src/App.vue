@@ -101,8 +101,9 @@ export default class App extends Vue {
       .animator({
         duration: 350,
         delay: (el, i) => {
-          return 500 - i * 100
+          return 500 - i * 200
         },
+        // delay: 1000,
         properties: {
           scale: 5
         }
@@ -117,6 +118,9 @@ export default class App extends Vue {
       .animator({
         duration: 1050,
         ease: 'elasticEaseOut',
+        delay: (el, i) => {
+          return 500 - i * 200
+        },
         properties: {
           translateX: '60px'
         }
@@ -124,6 +128,9 @@ export default class App extends Vue {
       .animator({
         duration: 350,
         ease: 'elasticEaseOut',
+        delay: (el, i) => {
+          return i * 200
+        },
         properties: {
           translateX: '-60px'
         }
@@ -137,12 +144,18 @@ export default class App extends Vue {
       })
       .animator({
         duration: 150,
+        delay: (el, i) => {
+          return i * 200
+        },
         properties: {
           translateY: '-200px'
         }
       })
       .animator({
         duration: 1050,
+        delay: (el, i) => {
+          return i * 200
+        },
         ease: 'bounceEaseOut',
         properties: {
           translateY: '0px'
