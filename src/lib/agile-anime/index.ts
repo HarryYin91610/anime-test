@@ -2,7 +2,7 @@
 
 import './lib/polyfill'
 import Anime from './children/anime'
-import { IAgileAnimeOptions, IAnimeOptions, DirtType, TargetType, TCallback, TUpdating } from './typings/index'
+import { IAgileAnimeOptions, IAnimeOptions, DirtType, TCallback, TUpdating } from './typings/index'
 
 export default class AgileAnime {
   private targets: HTMLElement[] = []// 动画操作的dom节点列表

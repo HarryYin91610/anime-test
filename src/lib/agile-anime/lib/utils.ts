@@ -1,6 +1,11 @@
 /* ___ @HarryYin __ */
 import { unitList } from '../setting'
 
+interface IArrayItem {
+  index: number
+  value: number
+}
+
 /* 获取属性值单位，格式：1px */
 export const getUnit = (val: number | string): string => {
   if (typeof val === 'number') { return '' }
@@ -8,7 +13,7 @@ export const getUnit = (val: number | string): string => {
   if (unitList.indexOf(unit) > -1) {
     return unit
   } else {
-    console.log('不支持该数值单位：', unit)
+    console.error('不支持该数值单位：', unit)
   }
   return ''
 }
@@ -61,14 +66,19 @@ export const getKeyList = (key: string): string[] => {
   return list
 }
 
-/* 获取数组中最大值 */
-export const getMaxFromArray = (list: number[]) => {
+/* 获取数组中最大值下标, -1 未找到 */
+export const getMaxFromArray = (list: number[]): IArrayItem => {
   let temp = 0
-  list.forEach((val) => {
-    if (val > temp) {
+  let maxIndex = -1
+  list.forEach((val, i) => {
+    if (val >= temp) {
       temp = val
+      maxIndex = i
     }
   })
-  return temp
+  return {
+    index: maxIndex,
+    value: temp
+  }
 }
 

@@ -10,9 +10,9 @@ export default class Anime {
   public sequence: number = 0 // 动画序号
   public total: number = 0 // 动画总阶段数
   private targets: HTMLElement[] = [] // 动画操作的dom节点
-  private duration: number = 0 // 动画持续时间(毫秒)
+  private duration: number[] = [] // 每个元素动画持续时间(毫秒)
   private properties: IAnimeNode // 动画修改dom的属性
-  private delay: number[] = [] // 单个元素动画延时开始(毫秒)
+  private delay: number[] = [] // 每个元素动画延时开始(毫秒)
   private ease: string = '' // 动画时间函数
   public paused: boolean = false // 暂停动画
   public pausedStart: number = 0 // 暂停起始时间点
@@ -36,31 +36,33 @@ export default class Anime {
   constructor (
     sequence: number,
     targets: HTMLElement[],
-    duration: number, properties: IAnimeNode,
+    duration: number | NumberGenerator, properties: IAnimeNode,
     ease?: string, delay?: number | NumberGenerator,
     update?: TUpdating) {
 
     this.sequence = sequence
     this.targets = targets
-    this.duration = duration || 0
+    if (duration) {
+      this.initTime(duration, this.duration)
+    }
     this.properties = properties
     if (delay) {
-      this.initDelays(delay, this.delay)
+      this.initTime(delay, this.delay)
     }
     this.ease = ease || 'linear'
     this.update = update
   }
 
-  /* 初始化delay值 */
-  private initDelays (delay: number | NumberGenerator, list: number[]) {
-    if (typeof delay === 'function') {
+  /* 初始化时间值：delay、duration */
+  private initTime (time: number | NumberGenerator, list: number[]) {
+    if (typeof time === 'function') {
       this.targets.forEach((target, tindex) => {
-        const num = delay(target, tindex)
+        const num = time(target, tindex)
         list.push(num)
       })
-    } else if (typeof delay === 'number') {
+    } else if (typeof time === 'number') {
       this.targets.forEach((target, tindex) => {
-        list.push(delay)
+        list.push(time)
       })
     }
   }
@@ -126,22 +128,31 @@ export default class Anime {
           self.targets.forEach((target, tindex) => {
             // 缓动因子
             const subDelay = self.delay[tindex] || 0
+            const subDuration = self.duration[tindex] || 0
             const subPassed = passed > subDelay ? passed - subDelay : 0
-            let p: number = subPassed ? Math.min(1.0, subPassed / self.duration) : 0
+            let p: number = subPassed ? Math.min(1.0, subPassed / subDuration) : 0
             p = typeof tweenEasing === 'undefined' && easing ? easing(p) : p
             totalP += p
+
             // 利用缓动因子和算法更新dom
             self.updateProperties(
               tindex,
-              subPassed > self.duration ? self.duration : subPassed,
+              subPassed > subDuration ? subDuration : subPassed,
               p, tweenEasing)
           })
 
           totalP /= self.targets.length
           self.curPercent = Math.floor(100 * (totalP + self.sequence - 1) / self.total)
-          const maxDelay = getMaxFromArray(self.delay) || 0
 
-          if (totalP >= 1.0 && passed > self.duration + maxDelay) {
+          // 计算总动画时长
+          let totalTime = getMaxFromArray(self.duration).value || 0
+          const maxDelayIndex = getMaxFromArray(self.delay).index
+          if (maxDelayIndex > -1) {
+            const maxDelay = self.delay[maxDelayIndex] || 0
+            totalTime = self.duration[maxDelayIndex] + maxDelay
+          }
+
+          if (totalP >= 1.0 && passed > totalTime) {
             resolve(self)
           } else {
             self.aId = requestAnimationFrame(step)
@@ -242,7 +253,7 @@ export default class Anime {
         // 未达到目标值时
         const starV = getPureNumber(this.startNode[tindex][kitem])
         const num = easing ?
-        easing(ts, starV, pureV - starV, this.duration) :
+        easing(ts, starV, pureV - starV, this.duration[tindex]) :
         self.getCurrentValue(tindex, kitem, pureV, curVal, percent)
         self[kitem][tindex] = num.toFixed(2) + unit
       } else {

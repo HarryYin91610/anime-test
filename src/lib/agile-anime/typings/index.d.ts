@@ -14,7 +14,7 @@ interface IAgileAnimeOptions {
 }
 
 interface IAnimeOptions {
-  duration: number
+  duration: number | NumberGenerator
   properties: IAnimeNode
   ease?: string
   delay?: number | NumberGenerator
@@ -46,10 +46,10 @@ interface ITween {
 export class Anime {
   public sequence: number // 动画序号
   public total: number // 动画总阶段数
-  private target: HTMLElement | string // 动画操作的dom节点
-  private duration: number // 动画持续时间(毫秒)
+  private targets: HTMLElement[] // 动画操作的dom节点
+  private duration: number[] // 每个元素动画持续时间(毫秒)
   private properties: IAnimeNode // 动画修改dom的属性
-  private delay: number // 动画延时开始(毫秒)
+  private delay: number[] // 每个元素动画延时开始(毫秒)
   private ease: string // 动画时间函数
   public paused: boolean // 暂停动画
   public pausedStart: number // 暂停起始时间点
@@ -57,23 +57,23 @@ export class Anime {
   private update?: TUpdating // 动画每帧回调
   private curPercent: number // 动画执行进度（百分比）
 
-  // 起点
-  private startNode: IAnimeNode
-  // transform变换
-  private translateX: number
-  private translateY: number
-  private translateZ: number
-  private scaleX: number
-  private scaleY: number
-  private rotate: number
-  private rotateX: number
-  private rotateY: number
-  private rotateZ: number
+  // 初始化样式节点
+  private startNode: IAnimeNode[]
+  // transform变换（记录dom实时样式值）
+  private translateX: number[] | string[]
+  private translateY: number[] | string[]
+  private translateZ: number[] | string[]
+  private scaleX: number[]
+  private scaleY: number[]
+  private rotate: number[] | string[]
+  private rotateX: number[] | string[]
+  private rotateY: number[] | string[]
+  private rotateZ: number[] | string[]
 
   constructor(sequence: number,
-    target: HTMLElement,
-    duration: number, properties: IAnimeNode,
-    ease?: string, delay?: number,
+    targets: HTMLElement[],
+    duration: number | NumberGenerator, properties: IAnimeNode,
+    ease?: string, delay?: number | NumberGenerator,
     update?: TUpdating)
 
   initStartNode(): void

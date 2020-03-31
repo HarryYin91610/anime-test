@@ -99,32 +99,40 @@ export default class App extends Vue {
 
       this.anime1
       .animator({
-        duration: 350,
-        delay: (el, i) => {
-          return 500 - i * 200
+        duration: (el, i) => {
+          if (i % 2 === 1) {
+            return 1400
+          } else {
+            return 300
+          }
         },
+        // delay: (el, i) => {
+        //   return 300 + i * 300
+        // },
         properties: {
-          scale: 5
+          translateY: 100
         }
       })
       .animator({
         duration: 750,
         ease: 'elasticEaseOut',
         delay: (el, i) => {
-          return 500 - i * 200
+          return 100 + i * 400
         },
         properties: {
-          scale: 1
+          translateX: 100
         }
       })
       .animator({
-        duration: 1050,
         ease: 'elasticEaseOut',
+        duration: (el, i) => {
+          return 1050 + i * 500
+        },
         delay: (el, i) => {
-          return 500 - i * 200
+          return 100 + i * 400
         },
         properties: {
-          translateX: '60px'
+          translateY: '-160px'
         }
       })
       .animator({
@@ -137,32 +145,32 @@ export default class App extends Vue {
           translateX: '-60px'
         }
       })
-      .animator({
-        duration: 750,
-        ease: 'elasticEaseOut',
-        properties: {
-          translateX: '0px'
-        }
-      })
-      .animator({
-        duration: 150,
-        delay: (el, i) => {
-          return i * 200
-        },
-        properties: {
-          translateY: '-200px'
-        }
-      })
-      .animator({
-        duration: 1050,
-        delay: (el, i) => {
-          return i * 200
-        },
-        ease: 'bounceEaseOut',
-        properties: {
-          translateY: '0px'
-        }
-      })
+      // .animator({
+      //   duration: 750,
+      //   ease: 'elasticEaseOut',
+      //   properties: {
+      //     translateX: '0px'
+      //   }
+      // })
+      // .animator({
+      //   duration: 150,
+      //   delay: (el, i) => {
+      //     return i * 200
+      //   },
+      //   properties: {
+      //     translateY: '-200px'
+      //   }
+      // })
+      // .animator({
+      //   duration: 1050,
+      //   delay: (el, i) => {
+      //     return i * 200
+      //   },
+      //   ease: 'bounceEaseOut',
+      //   properties: {
+      //     translateY: '0px'
+      //   }
+      // })
     })
   }
 }
