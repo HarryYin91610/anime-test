@@ -101,76 +101,75 @@ export default class App extends Vue {
       .animator({
         duration: (el, i) => {
           if (i % 2 === 1) {
-            return 1400
+            return 1000
           } else {
-            return 300
+            return 3000
           }
         },
-        // delay: (el, i) => {
-        //   return 300 + i * 300
-        // },
-        properties: {
-          translateY: 100
-        }
-      })
-      .animator({
-        duration: 750,
         ease: 'elasticEaseOut',
-        delay: (el, i) => {
-          return 100 + i * 400
-        },
         properties: {
-          translateX: 100
-        }
-      })
-      .animator({
-        ease: 'elasticEaseOut',
-        duration: (el, i) => {
-          return 1050 + i * 500
-        },
-        delay: (el, i) => {
-          return 100 + i * 400
-        },
-        properties: {
-          translateY: '-160px'
-        }
-      })
-      .animator({
-        duration: 350,
-        ease: 'elasticEaseOut',
-        delay: (el, i) => {
-          return i * 200
-        },
-        properties: {
-          translateX: '-60px'
+          translateY: 100,
+          opacity: 0.3
         }
       })
       // .animator({
       //   duration: 750,
       //   ease: 'elasticEaseOut',
+      //   delay: (el, i) => {
+      //     return 100 + i * 400
+      //   },
       //   properties: {
-      //     translateX: '0px'
+      //     translateX: 100,
+      //     opacity: 1
       //   }
       // })
       // .animator({
-      //   duration: 150,
+      //   ease: 'elasticEaseOut',
+      //   duration: (el, i) => {
+      //     return 1050 + i * 500
+      //   },
+      //   delay: (el, i) => {
+      //     return 100 + i * 400
+      //   },
+      //   properties: {
+      //     translateY: '-160px'
+      //   }
+      // })
+      // .animator({
+      //   duration: 350,
+      //   ease: 'elasticEaseOut',
       //   delay: (el, i) => {
       //     return i * 200
       //   },
       //   properties: {
-      //     translateY: '-200px'
+      //     translateX: '-60px'
       //   }
       // })
-      // .animator({
-      //   duration: 1050,
-      //   delay: (el, i) => {
-      //     return i * 200
-      //   },
-      //   ease: 'bounceEaseOut',
-      //   properties: {
-      //     translateY: '0px'
-      //   }
-      // })
+      .animator({
+        duration: 750,
+        ease: 'elasticEaseOut',
+        properties: {
+          translateY: '-100px',
+          opacity: 0
+        }
+      })
+      .animator({
+        duration: 3000,
+        properties: {
+          translateY: '100px',
+          opacity: 1
+        }
+      })
+      .animator({
+        duration: 1050,
+        delay: (el, i) => {
+          return i * 200
+        },
+        ease: 'bounceEaseOut',
+        properties: {
+          translateY: '0px'
+        }
+      })
     })
   }
 }

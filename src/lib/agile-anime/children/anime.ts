@@ -1,10 +1,19 @@
 /* ___ @HarryYin __ */
 
-import { transformList } from '../setting'
-import { getDefaultUnit, getUnit, getPureNumber, getKeyFromStyle, getValueFromStyle, getKeyList, getMaxFromArray } from '../lib/utils'
+import { transformList, propsList } from '../setting'
 import Tween from '../lib/tween'
-import { IAnimeNode, TUpdating, ITween, NumberGenerator } from '../typings'
-import BezierEasing from 'bezier-easing'
+import { IAnimeNode, TUpdating, ITween, NumberGenerator, TweenFunction } from '../typings'
+import { getCssEaseFunction } from '../lib/css-ease'
+import {
+  getDefaultUnit,
+  getUnit,
+  getPureNumber,
+  getKeyFromStyle,
+  getValueFromStyle,
+  getKeyList,
+  getMaxFromArray,
+  getTransformOriginValue
+} from '../lib/utils'
 
 export default class Anime {
   public sequence: number = 0 // 动画序号
@@ -32,6 +41,8 @@ export default class Anime {
   private rotateX: number[] | string[] = []
   private rotateY: number[] | string[] = []
   private rotateZ: number[] | string[] = []
+  // 其他可变化属性
+  private opacity: number[] = []
 
   constructor (
     sequence: number,
@@ -54,7 +65,7 @@ export default class Anime {
   }
 
   /* 初始化时间值：delay、duration */
-  private initTime (time: number | NumberGenerator, list: number[]) {
+  private initTime (time: number | NumberGenerator, list: number[]): void {
     if (typeof time === 'function') {
       this.targets.forEach((target, tindex) => {
         const num = time(target, tindex)
@@ -67,20 +78,20 @@ export default class Anime {
     }
   }
 
-  /* 初始化dom样式值 */
+  /* 初始化dom样式属性值缓存 */
   private initStartNode (): void {
-    const self: any = this
-    self.startNode = []
-
+    this.startNode = []
     this.targets.forEach((target, tindex) => {
-      const str: string | null = target.style.transform
+      const self: any = this
+      const transformStr: string = target.style.transform || ''
+      const opacityStr: string = target.style.opacity || ''
       self.startNode.push({})
 
-      if (str) {
-        // 从现有行内样式初始化
-        str.split(' ').forEach((style) => {
+      // 从现有行内样式初始化transform
+      if (transformStr) {
+        transformStr.split(' ').forEach((style) => {
           const key: string = getKeyFromStyle(style)
-          if (style && transformList.indexOf(key) > -1) {
+          if (style && transformList.includes(key)) {
             const val: string = getValueFromStyle(style)
             const keylist = getKeyList(key)
             keylist.forEach((kitem) => {
@@ -91,16 +102,26 @@ export default class Anime {
             console.error('不支持该样式修改：', key)
           }
         })
-      } else {
-        // 从properties初始化
-        Object.keys(this.properties).forEach((key) => {
-          const keylist = getKeyList(key)
-          keylist.forEach((kitem) => {
-            self[kitem].splice(tindex, 1, kitem.indexOf('scale') > -1 ? 1 : 0)
-            self.startNode[tindex][kitem] = self[kitem][tindex]
-          })
-        })
       }
+
+      // 从现有行内样式初始化opacity
+      if (opacityStr) {
+        self['opacity'].splice(tindex, 1, Number(opacityStr))
+        self.startNode[tindex]['opacity'] = self['opacity'][tindex]
+      }
+
+      // 为没有inline样式的属性设置默认值
+      Object.keys(self.properties).forEach((key) => {
+        const keylist = getKeyList(key)
+        keylist.forEach((kitem) => {
+          if ((propsList.includes(kitem)
+          || transformList.includes(kitem))
+          && self.startNode[tindex][kitem] === undefined) {
+            self[kitem].splice(tindex, 1, ['scale', 'opacity'].includes(kitem) ? 1 : 0)
+            self.startNode[tindex][kitem] = self[kitem][tindex]
+          }
+        })
+      })
     })
   }
 
@@ -111,8 +132,8 @@ export default class Anime {
       let startTime: number = 0 // 动画开始时间点
       let pausedTime: number = 0 // 暂停时长
       // 缓动算法函数
-      const tweenEasing = this.distinguishEase(this.ease)
-      const easing = this.getCssEaseFunction(this.ease)
+      const tweenEasing = self.distinguishEase(self.ease)
+      const easing = getCssEaseFunction(self.ease)
 
       function step (timestamp: number) {
         startTime = startTime || timestamp
@@ -125,6 +146,8 @@ export default class Anime {
           const passed = (timestamp - pausedTime) - startTime
 
           let totalP = 0
+
+          // 更新每个dom
           self.targets.forEach((target, tindex) => {
             // 缓动因子
             const subDelay = self.delay[tindex] || 0
@@ -162,9 +185,8 @@ export default class Anime {
         // 动画更新每一帧时回调
         self.update && self.update({ sq: self.sequence, percent: self.curPercent })
       }
-      // console.error('动画', this.sequence)
 
-      this.initStartNode()
+      self.initStartNode()
       self.aId = requestAnimationFrame(step)
     })
   }
@@ -181,42 +203,36 @@ export default class Anime {
   }
 
   /* 获取tween算法函数 */
-  private distinguishEase (ease: string) {
+  private distinguishEase (ease: string): TweenFunction | undefined {
     return (Tween as ITween)[ease] || undefined
-  }
-
-  /* 获取css timing-function */
-  private getCssEaseFunction (ease: string) {
-    if (ease.includes('cubic-bezier')) {
-      const params = ease.replace(/cubic-bezier\(/g, '').replace(/\)/g, '').split(',')
-      if (params.length !== 4) {
-        console.error('cubic-bezier参数个数不对！')
-        return
-      }
-      return BezierEasing(Number(params[0]), Number(params[1]), Number(params[2]), Number(params[3]))
-    }
-    switch (ease) {
-      case 'ease-in-out':
-        return BezierEasing(0.94, 0.00, 0.34, 1.00)
-      case 'ease-in':
-        return BezierEasing(0.64, 0.02, 0.64, 0.40)
-      case 'ease-out':
-        return BezierEasing(0.10, 0.24, 0.25, 0.98)
-    }
-    return (p: number) => p
   }
 
   /* 更新属性 */
   private updateProperties (
     tindex: number, ts: number, percent: number,
     easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
+
     for (const key of Object.keys(this.properties)) {
-      if (transformList.includes(key)) {
-        this.updateTransform(tindex, ts, key, this.properties[key], percent, easing)
+      const propV = this.properties[key]
+      if (transformList.includes(key) && propV) {
+        // 更新transform
+        this.updateTransform(tindex, ts, key, propV, percent, easing)
+      } else if (propsList.includes(key) && propV !== undefined) {
+        // 更新其他属性
+        switch (key) {
+          case 'opacity':
+          this.updateOpacity(tindex, ts, key, propV, percent, easing)
+          break
+          case 'color':
+          case 'backgroundColor':
+          break
+        }
       } else {
         console.error('不支持该样式修改：', key)
       }
     }
+
+    this.updateDomStyle(tindex)
   }
 
   /* 更新transform变化 */
@@ -224,19 +240,17 @@ export default class Anime {
     tindex: number, ts: number, key: string, val: number |  string, percent: number,
     easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
 
-    if (!this.targets || this.targets.length === 0) {
+    const self: any = this
+    if (!self.targets || self.targets.length === 0) {
       console.error('target不能为空')
       return
     }
-
-    const self: any = this
-    const target = this.targets[tindex]
 
     // 获取key值映射的属性列表
     const keylist = getKeyList(key)
     keylist.forEach((kitem) => {
       // 若变化属性不存在于startNode，则补充默认值
-      const startnode = this.startNode[tindex]
+      const startnode = self.startNode[tindex]
       if (!startnode || !startnode[kitem]) {
         startnode[kitem] = kitem.indexOf('scale') > -1 ? 1 : 0 // 默认值
       }
@@ -251,31 +265,78 @@ export default class Anime {
       const curVal = self[kitem][tindex]
       if (curVal && getPureNumber(curVal) !== pureV) {
         // 未达到目标值时
-        const starV = getPureNumber(this.startNode[tindex][kitem])
+        const starV = getPureNumber(self.startNode[tindex][kitem])
+        // 根据缓动因子计算属性值
         const num = easing ?
-        easing(ts, starV, pureV - starV, this.duration[tindex]) :
+        easing(ts, starV, pureV - starV, self.duration[tindex]) :
         self.getCurrentValue(tindex, kitem, pureV, curVal, percent)
+        // 更新属性值
         self[kitem][tindex] = num.toFixed(2) + unit
       } else {
         // 已达到目标值时
-        self[kitem][tindex] = self.getOriginValue(tindex, kitem)
+        self[kitem][tindex] = getTransformOriginValue(self.targets[tindex], kitem)
       }
     })
+  }
 
-    // 更新dom样式
-    let str = ''
-    const skeyList = Object.keys(this.startNode[tindex])
-    skeyList.forEach((skey, sindex) => {
-      str += this.getTransformStr(tindex, skey)
-      if (sindex < skeyList.length - 1) {
-        str += ' '
-      }
-    })
-    target.style.transform = str
+  /* 更新opacity变化 */
+  private updateOpacity (
+    tindex: number, ts: number, key: string, val: number, percent: number,
+    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
+
+    const self: any = this
+    if (!self.targets || self.targets.length === 0) {
+      console.error('target不能为空')
+      return
+    }
+
+    const curVal = self[key][tindex]
+    if (curVal !== undefined && curVal !== val) {
+      // 未达到目标值时
+      const starV = self.startNode[tindex][key]
+      const num: number = easing ?
+      easing(ts, starV, val - starV, self.duration[tindex]) :
+      self.getCurrentValue(tindex, key, val, curVal, percent)
+
+      self[key][tindex] = Number(num.toFixed(2))
+    } else {
+      // 已达到目标值时
+      self[key][tindex] = Number(self.targets[tindex].style.opacity)
+    }
+  }
+
+  /* 更新dom样式 */
+  private updateDomStyle (tindex: number): void {
+    const self: any = this
+    const target = this.targets[tindex]
+
+    if (self.startNode[tindex]) {
+      const skeyList = Object.keys(self.startNode[tindex])
+      let transformStr = ''
+      skeyList.forEach((skey, sindex) => {
+        if (transformList.includes(skey)) {
+          transformStr += self.getTransformStr(tindex, skey)
+          if (sindex < skeyList.length - 1) {
+            transformStr += ' '
+          }
+        } else if (propsList.includes(skey)) {
+          switch (skey) {
+            case 'opacity':
+            case 'borderRadius':
+            case 'backgroundColor':
+            case 'color':
+              target.style[skey] = self[skey][tindex]
+              break
+          }
+        }
+      })
+
+      target.style.transform = transformStr
+    }
   }
 
   /* 获取transform样式字符串 */
-  private getTransformStr (tindex: number, key: string) {
+  private getTransformStr (tindex: number, key: string): string {
     return `${key}(${(this as any)[key][tindex]})`
   }
 
@@ -283,24 +344,5 @@ export default class Anime {
   private getCurrentValue (tindex: number, key: string, val: number, cur: number, p: number): number {
     const start = getPureNumber(this.startNode[tindex][key])
     return val >= start ? start + (val - start) * p : start - (start - val) * p
-  }
-
-  /* 获取dom属性现有值 */
-  private getOriginValue (tindex: number, key: string): number | string {
-    const str = this.targets[tindex].style.transform
-    let res = key.indexOf('scale') > -1 ? 1 : 0 // 默认值
-    let unit = '' // 单位
-    if (str) {
-      str.split(' ').some((style, index) => {
-        if (style.includes(key)) {
-          const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)(\\D*)\\)`, 'g')
-          res = Number(style.replace(reg, '$1'))
-          unit = style.replace(reg, '$2')
-          return true
-        }
-        return false
-      })
-    }
-    return key.indexOf('scale') > -1 ? res : res + unit
   }
 }

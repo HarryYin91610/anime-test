@@ -3,6 +3,7 @@ type TargetType = HTMLElement | HTMLElement[] | string | string[]
 type TCallback = (count: number) => void
 type TUpdating = ({sq, percent}: IUpdateOptions) => void
 type NumberGenerator = (el: HTMLElement, i: number) => number
+type TweenFunction = (t: number, b: number, c: number, d: number, s?: number, a?: number, p?: number) => number
 
 interface IAgileAnimeOptions {
   target: TargetType
@@ -31,6 +32,7 @@ interface IAnimeNode {
   rotateX?: number | string
   rotateY?: number | string
   rotateZ?: number | string
+  opacity?: number
   [propName: string]: any
 }
 
@@ -40,7 +42,7 @@ interface IUpdateOptions {
 }
 
 interface ITween {
-  [propName: string]: (t: number, b: number, c: number, d: number, s?: number, a?: number, p?: number) => number
+  [propName: string]: TweenFunction
 }
 
 export class Anime {
@@ -82,4 +84,15 @@ export class Anime {
   stop(): void
 }
 
-export { IAgileAnimeOptions, IAnimeOptions, DirtType, TargetType, NumberGenerator, IAnimeNode, TCallback, TUpdating, ITween }
+export { 
+  IAgileAnimeOptions,
+  IAnimeOptions,
+  DirtType,
+  TargetType,
+  NumberGenerator,
+  IAnimeNode,
+  TCallback,
+  TUpdating,
+  ITween,
+  TweenFunction
+}

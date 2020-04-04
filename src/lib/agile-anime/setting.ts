@@ -14,6 +14,14 @@ export const transformList = [
   'scaleY'
 ]
 
+/* 有效的其他属性 */
+export const propsList = [
+  'opacity',
+  'borderRadius',
+  'color',
+  'backgroundColor'
+]
+
 /* 有效的单位 */
 export const unitList = [
   'px',

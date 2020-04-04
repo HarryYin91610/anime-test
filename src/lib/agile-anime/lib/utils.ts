@@ -82,3 +82,21 @@ export const getMaxFromArray = (list: number[]): IArrayItem => {
   }
 }
 
+/* 获取dom属性现有transform值 */
+export const getTransformOriginValue = (dom: HTMLElement, key: string): number | string => {
+  const str = dom.style.transform
+  let res = key.indexOf('scale') > -1 ? 1 : 0 // 默认值
+  let unit = '' // 单位
+  if (str) {
+    str.split(' ').some((style, index) => {
+      if (style.includes(key)) {
+        const reg = new RegExp(`${key}\\((-?\\d+\\.?\\d*)(\\D*)\\)`, 'g')
+        res = Number(style.replace(reg, '$1'))
+        unit = style.replace(reg, '$2')
+        return true
+      }
+      return false
+    })
+  }
+  return key.indexOf('scale') > -1 ? res : res + unit
+}
