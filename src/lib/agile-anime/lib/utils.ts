@@ -24,6 +24,7 @@ export const getDefaultUnit = (key: string): string => {
     case 'translateX':
     case 'translateY':
     case 'translateZ':
+    case 'borderRadius':
       return 'px'
     case 'rotate':
     case 'rotateX':

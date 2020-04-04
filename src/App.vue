@@ -109,45 +109,47 @@ export default class App extends Vue {
         ease: 'elasticEaseOut',
         properties: {
           translateY: 100,
-          opacity: 0.3
+          opacity: 0.3,
+          borderRadius: '50%'
         }
       })
-      // .animator({
-      //   duration: 750,
-      //   ease: 'elasticEaseOut',
-      //   delay: (el, i) => {
-      //     return 100 + i * 400
-      //   },
-      //   properties: {
-      //     translateX: 100,
-      //     opacity: 1
-      //   }
-      // })
-      // .animator({
-      //   ease: 'elasticEaseOut',
-      //   duration: (el, i) => {
-      //     return 1050 + i * 500
-      //   },
-      //   delay: (el, i) => {
-      //     return 100 + i * 400
-      //   },
-      //   properties: {
-      //     translateY: '-160px'
-      //   }
-      // })
-      // .animator({
-      //   duration: 350,
-      //   ease: 'elasticEaseOut',
-      //   delay: (el, i) => {
-      //     return i * 200
-      //   },
-      //   properties: {
-      //     translateX: '-60px'
-      //   }
-      // })
       .animator({
         duration: 750,
         ease: 'elasticEaseOut',
+        delay: (el, i) => {
+          return 100 + i * 400
+        },
+        properties: {
+          translateX: 100,
+          opacity: 1
+        }
+      })
+      .animator({
+        ease: 'elasticEaseOut',
+        duration: (el, i) => {
+          return 1050 + i * 500
+        },
+        delay: (el, i) => {
+          return 100 + i * 400
+        },
+        properties: {
+          translateY: '-160px',
+          borderRadius: 0
+        }
+      })
+      .animator({
+        duration: 350,
+        ease: 'elasticEaseOut',
+        delay: (el, i) => {
+          return i * 200
+        },
+        properties: {
+          translateX: '-60px'
+        }
+      })
+      .animator({
+        duration: 750,
+        ease: 'linear',
         properties: {
           translateY: '-100px',
           opacity: 0

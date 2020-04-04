@@ -43,6 +43,7 @@ export default class Anime {
   private rotateZ: number[] | string[] = []
   // 其他可变化属性
   private opacity: number[] = []
+  private borderRadius: number[] | string[] = []
 
   constructor (
     sequence: number,
@@ -85,6 +86,7 @@ export default class Anime {
       const self: any = this
       const transformStr: string = target.style.transform || ''
       const opacityStr: string = target.style.opacity || ''
+      const borderRadiusStr: string = target.style.borderRadius || ''
       self.startNode.push({})
 
       // 从现有行内样式初始化transform
@@ -106,8 +108,16 @@ export default class Anime {
 
       // 从现有行内样式初始化opacity
       if (opacityStr) {
-        self['opacity'].splice(tindex, 1, Number(opacityStr))
-        self.startNode[tindex]['opacity'] = self['opacity'][tindex]
+        const pkey = 'opacity'
+        self[pkey].splice(tindex, 1, Number(opacityStr))
+        self.startNode[tindex][pkey] = self[pkey][tindex]
+      }
+
+      // 从现有行内样式初始化border-radius
+      if (borderRadiusStr) {
+        const pkey = 'borderRadius'
+        self[pkey].splice(tindex, 1, borderRadiusStr)
+        self.startNode[tindex][pkey] = self[pkey][tindex]
       }
 
       // 为没有inline样式的属性设置默认值
@@ -210,7 +220,7 @@ export default class Anime {
   /* 更新属性 */
   private updateProperties (
     tindex: number, ts: number, percent: number,
-    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
+    easing?: TweenFunction): void {
 
     for (const key of Object.keys(this.properties)) {
       const propV = this.properties[key]
@@ -221,7 +231,8 @@ export default class Anime {
         // 更新其他属性
         switch (key) {
           case 'opacity':
-          this.updateOpacity(tindex, ts, key, propV, percent, easing)
+          case 'borderRadius':
+          this.updateOtherProps(tindex, ts, key, propV, percent, easing)
           break
           case 'color':
           case 'backgroundColor':
@@ -238,7 +249,7 @@ export default class Anime {
   /* 更新transform变化 */
   private updateTransform (
     tindex: number, ts: number, key: string, val: number |  string, percent: number,
-    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
+    easing?: TweenFunction): void {
 
     const self: any = this
     if (!self.targets || self.targets.length === 0) {
@@ -249,40 +260,14 @@ export default class Anime {
     // 获取key值映射的属性列表
     const keylist = getKeyList(key)
     keylist.forEach((kitem) => {
-      // 若变化属性不存在于startNode，则补充默认值
-      const startnode = self.startNode[tindex]
-      if (!startnode || !startnode[kitem]) {
-        startnode[kitem] = kitem.indexOf('scale') > -1 ? 1 : 0 // 默认值
-      }
-
-      // 计算获取实时样式value
-      const pureV = typeof val === 'string' ? getPureNumber(val) : val
-      let unit = getUnit(val)
-      if (typeof val === 'number' && !unit) {
-        unit = getDefaultUnit(kitem)
-      }
-
-      const curVal = self[kitem][tindex]
-      if (curVal && getPureNumber(curVal) !== pureV) {
-        // 未达到目标值时
-        const starV = getPureNumber(self.startNode[tindex][kitem])
-        // 根据缓动因子计算属性值
-        const num = easing ?
-        easing(ts, starV, pureV - starV, self.duration[tindex]) :
-        self.getCurrentValue(tindex, kitem, pureV, curVal, percent)
-        // 更新属性值
-        self[kitem][tindex] = num.toFixed(2) + unit
-      } else {
-        // 已达到目标值时
-        self[kitem][tindex] = getTransformOriginValue(self.targets[tindex], kitem)
-      }
+      this.updatePropsVal(true, tindex, ts, key, val, percent, easing)
     })
   }
 
-  /* 更新opacity变化 */
-  private updateOpacity (
+  /* 更新opacity、border-radius等其他属性变化 */
+  private updateOtherProps (
     tindex: number, ts: number, key: string, val: number, percent: number,
-    easing?: (t: number, b: number, c: number, d: number, a?: number, p?: number) => {}): void {
+    easing?: TweenFunction): void {
 
     const self: any = this
     if (!self.targets || self.targets.length === 0) {
@@ -290,18 +275,46 @@ export default class Anime {
       return
     }
 
-    const curVal = self[key][tindex]
-    if (curVal !== undefined && curVal !== val) {
-      // 未达到目标值时
-      const starV = self.startNode[tindex][key]
-      const num: number = easing ?
-      easing(ts, starV, val - starV, self.duration[tindex]) :
-      self.getCurrentValue(tindex, key, val, curVal, percent)
+    this.updatePropsVal(false, tindex, ts, key, val, percent, easing)
+  }
 
-      self[key][tindex] = Number(num.toFixed(2))
+  /* 更新属性值 */
+  private updatePropsVal (
+    transform: boolean, tindex: number, ts: number, key: string, val: number |  string, percent: number,
+    easing?: TweenFunction): void {
+    const self: any = this
+
+    // 若变化属性不存在于startNode，则补充默认值
+    const startnode = self.startNode[tindex]
+    if (!startnode || !startnode[key]) {
+      startnode[key] = ['scale', 'opacity'].includes(key) ? 1 : 0 // 默认值
+    }
+
+    // 计算获取实时样式value
+    const pureV = typeof val === 'string' ? getPureNumber(val) : val
+    let unit = getUnit(val)
+    if (typeof val === 'number' && !unit) {
+      unit = getDefaultUnit(key)
+    }
+
+    const curVal = typeof self[key][tindex] === 'string'
+    ? getPureNumber(self[key][tindex])
+    : self[key][tindex]
+
+    if (curVal !== undefined && curVal !== pureV) {
+      // 未达到目标值时
+      const starV = getPureNumber(self.startNode[tindex][key])
+      // 根据缓动因子计算属性值
+      const num = easing ?
+      easing(ts, starV, pureV - starV, self.duration[tindex]) :
+      self.getCurrentValue(tindex, key, pureV, curVal, percent)
+      // 更新属性值
+      self[key][tindex] = num.toFixed(2) + unit
     } else {
       // 已达到目标值时
-      self[key][tindex] = Number(self.targets[tindex].style.opacity)
+      self[key][tindex] = transform
+      ? getTransformOriginValue(self.targets[tindex], key)
+      : self.targets[tindex].style[key]
     }
   }
 
