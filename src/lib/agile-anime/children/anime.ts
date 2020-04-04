@@ -224,7 +224,7 @@ export default class Anime {
 
     for (const key of Object.keys(this.properties)) {
       const propV = this.properties[key]
-      if (transformList.includes(key) && propV) {
+      if (transformList.includes(key) && propV !== undefined) {
         // 更新transform
         this.updateTransform(tindex, ts, key, propV, percent, easing)
       } else if (propsList.includes(key) && propV !== undefined) {
@@ -260,7 +260,7 @@ export default class Anime {
     // 获取key值映射的属性列表
     const keylist = getKeyList(key)
     keylist.forEach((kitem) => {
-      this.updatePropsVal(true, tindex, ts, key, val, percent, easing)
+      this.updatePropsVal(true, tindex, ts, kitem, val, percent, easing)
     })
   }
 
