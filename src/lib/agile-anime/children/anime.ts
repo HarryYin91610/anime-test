@@ -2,8 +2,9 @@
 
 import { transformList, propsList } from '../setting'
 import Tween from '../lib/tween'
-import { IAnimeNode, TUpdating, ITween, NumberGenerator, TweenFunction } from '../typings'
+import { IAnimeNode, TUpdating, ITween, NumberGenerator, TweenFunction, IColorCache } from '../typings'
 import { getCssEaseFunction } from '../lib/css-ease'
+import { formatColor, getColorValues } from '../lib/colors'
 import {
   getDefaultUnit,
   getUnit,
@@ -44,6 +45,11 @@ export default class Anime {
   // 其他可变化属性
   private opacity: number[] = []
   private borderRadius: number[] | string[] = []
+  private color: string[] = []
+  private backgroundColor: string[] = []
+  // 颜色值缓存：0 初始颜色数组[R, G, B, A]，1 目的颜色数组[R, G, B, A]
+  private colorCache: IColorCache[] = []
+  private backgroundColorCache: IColorCache[] = []
 
   constructor (
     sequence: number,
@@ -58,6 +64,14 @@ export default class Anime {
       this.initTime(duration, this.duration)
     }
     this.properties = properties
+    // 缓存格式化后的目的背景颜色值
+    if (this.properties.backgroundColor && this.targets) {
+      this.initColorCache('backgroundColor', this.backgroundColorCache)
+    }
+    // 缓存格式化后的目的文字颜色值
+    if (this.properties.color && this.targets) {
+      this.initColorCache('color', this.colorCache)
+    }
     if (delay) {
       this.initTime(delay, this.delay)
     }
@@ -79,14 +93,23 @@ export default class Anime {
     }
   }
 
+  /* 初始化目的颜色值缓存 */
+  private initColorCache (key: string, list: IColorCache[]): void {
+    this.targets.forEach((target, tindex) => {
+      const self: Anime = this
+      const formatColors = formatColor(this.properties[key])
+      list.push({
+        end: getColorValues(formatColors)
+      })
+    })
+  }
+
   /* 初始化dom样式属性值缓存 */
   private initStartNode (): void {
     this.startNode = []
     this.targets.forEach((target, tindex) => {
       const self: any = this
       const transformStr: string = target.style.transform || ''
-      const opacityStr: string = target.style.opacity || ''
-      const borderRadiusStr: string = target.style.borderRadius || ''
       self.startNode.push({})
 
       // 从现有行内样式初始化transform
@@ -106,28 +129,45 @@ export default class Anime {
         })
       }
 
-      // 从现有行内样式初始化opacity
-      if (opacityStr) {
-        const pkey = 'opacity'
-        self[pkey].splice(tindex, 1, Number(opacityStr))
-        self.startNode[tindex][pkey] = self[pkey][tindex]
-      }
-
-      // 从现有行内样式初始化border-radius
-      if (borderRadiusStr) {
-        const pkey = 'borderRadius'
-        self[pkey].splice(tindex, 1, borderRadiusStr)
-        self.startNode[tindex][pkey] = self[pkey][tindex]
-      }
+      // 从现有行内样式初始化其他样式属性
+      propsList.forEach((pkey) => {
+        switch (pkey) {
+          case 'opacity':
+          case 'borderRadius':
+          const val1: string | null = target.style[pkey]
+          if (val1 && self[pkey] && self.properties[pkey]) {
+            self[pkey].splice(tindex, 1, val1)
+            self.startNode[tindex][pkey] = self[pkey][tindex]
+          }
+          break
+          case 'color':
+          case 'backgroundColor':
+          // 更新颜色值
+          let val2: string | null = getComputedStyle(target)[pkey]
+          if (val2 && self[pkey] && self.properties[pkey]) {
+            val2 = formatColor(val2)
+            self[`${pkey}Cache`][tindex].start = getColorValues(val2)
+            self[pkey].splice(tindex, 1, val2)
+            self.startNode[tindex][pkey] = self[pkey][tindex]
+          }
+          break
+        }
+      })
 
       // 为没有inline样式的属性设置默认值
       Object.keys(self.properties).forEach((key) => {
         const keylist = getKeyList(key)
         keylist.forEach((kitem) => {
-          if ((propsList.includes(kitem)
-          || transformList.includes(kitem))
+          if ((propsList.includes(kitem) || transformList.includes(kitem))
           && self.startNode[tindex][kitem] === undefined) {
-            self[kitem].splice(tindex, 1, ['scale', 'opacity'].includes(kitem) ? 1 : 0)
+            let initV: number | string = 0
+            if (kitem.toLowerCase().indexOf('color') > -1) {
+              initV = 'rgba(0, 0, 0, 0)'
+              self[`${kitem}Cache`][tindex].start = [0, 0, 0, 0]
+            } else if (['scale', 'opacity'].includes(kitem)) {
+              initV = 1
+            }
+            self[kitem].splice(tindex, 1, initV)
             self.startNode[tindex][kitem] = self[kitem][tindex]
           }
         })
@@ -136,8 +176,14 @@ export default class Anime {
   }
 
   /* 播放动画 */
-  public play (): Promise<Anime> {
+  public play (): Promise<Anime>|null {
     const self: Anime = this
+
+    if (!self.targets || self.targets.length === 0) {
+      console.error('target不能为空')
+      return null
+    }
+
     return new Promise((resolve, reject) => {
       let startTime: number = 0 // 动画开始时间点
       let pausedTime: number = 0 // 暂停时长
@@ -236,6 +282,7 @@ export default class Anime {
           break
           case 'color':
           case 'backgroundColor':
+          this.updateColors(tindex, ts, key, propV, percent, easing)
           break
         }
       } else {
@@ -251,12 +298,6 @@ export default class Anime {
     tindex: number, ts: number, key: string, val: number |  string, percent: number,
     easing?: TweenFunction): void {
 
-    const self: any = this
-    if (!self.targets || self.targets.length === 0) {
-      console.error('target不能为空')
-      return
-    }
-
     // 获取key值映射的属性列表
     const keylist = getKeyList(key)
     keylist.forEach((kitem) => {
@@ -264,18 +305,50 @@ export default class Anime {
     })
   }
 
-  /* 更新opacity、border-radius等其他属性变化 */
+  /* 更新opacity、border-radius等属性变化 */
   private updateOtherProps (
     tindex: number, ts: number, key: string, val: number, percent: number,
     easing?: TweenFunction): void {
 
+    this.updatePropsVal(false, tindex, ts, key, val, percent, easing)
+  }
+
+  /* 更新backgroundColor、color属性变化 */
+  private updateColors (
+    tindex: number, ts: number, key: string, val: string, percent: number,
+    easing?: TweenFunction): void {
     const self: any = this
-    if (!self.targets || self.targets.length === 0) {
-      console.error('target不能为空')
-      return
+
+    // 若变化属性不存在于startNode，则补充默认值
+    const startnode = self.startNode[tindex]
+    if (!startnode || !startnode[key]) {
+      startnode[key] = 'rgba(0, 0, 0, 0)'
     }
 
-    this.updatePropsVal(false, tindex, ts, key, val, percent, easing)
+    const curVal = formatColor(self[key][tindex])
+    if (curVal !== undefined && curVal !== formatColor(val)) {
+      // 未达到目标值时
+      const colorCache: IColorCache = self[`${key}Cache`][tindex]
+      const startColors = colorCache.start
+      const endColors = colorCache.end
+      if (endColors && startColors) {
+        let colorsStr = ''
+        endColors.forEach((endColor, cindex) => {
+          colorsStr += cindex === 0 ? 'rgba(' : ''
+          // 根据缓动因子计算属性值
+          const num = easing ?
+          easing(ts, startColors[cindex], endColor - startColors[cindex], self.duration[tindex]) :
+          self.getCurrentValue(startColors[cindex], endColor, percent)
+          // 更新属性值
+          colorsStr += cindex > 2 ? num.toFixed(1) : Math.floor(num)
+          colorsStr += cindex === endColors.length - 1 ? ')' : ', '
+        })
+        self[key][tindex] = colorsStr
+      }
+    } else {
+      // 已达到目标值时
+      self[key][tindex] = self.targets[tindex].style[key]
+    }
   }
 
   /* 更新属性值 */
@@ -307,7 +380,7 @@ export default class Anime {
       // 根据缓动因子计算属性值
       const num = easing ?
       easing(ts, starV, pureV - starV, self.duration[tindex]) :
-      self.getCurrentValue(tindex, key, pureV, curVal, percent)
+      self.getCurrentValue(starV, pureV, percent)
       // 更新属性值
       self[key][tindex] = num.toFixed(2) + unit
     } else {
@@ -354,8 +427,7 @@ export default class Anime {
   }
 
   /* 根据缓动因子计算属性当前值 */
-  private getCurrentValue (tindex: number, key: string, val: number, cur: number, p: number): number {
-    const start = getPureNumber(this.startNode[tindex][key])
+  private getCurrentValue (start: number, val: number, p: number): number {
     return val >= start ? start + (val - start) * p : start - (start - val) * p
   }
 }

@@ -13,10 +13,10 @@ div#app
     div.button(@click="stopBall(1)")
       | stop
   div.demo-panel
-    div.ball-1(id="ball1")
-    div.ball-1(id="ball2")
-    div.ball-1(id="ball3")
-    div.ball-1(id="ball4")
+    div.ball-1(id="ball1") 1
+    div.ball-1(id="ball2") 2
+    div.ball-1(id="ball3") 3
+    div.ball-1(id="ball4") 4
 
   //- 播放、暂停、停止
   //- div.button-wrap
@@ -61,7 +61,7 @@ import AgileAnime from './lib/agile-anime'
 export default class App extends Vue {
   anime1: AgileAnime | null = null
 
-  playBall (index: number, dirt: string = 'normal', loop: boolean = false) {
+  playBall (index: number, dirt: string = 'normal', loop: boolean = true) {
     const self: any = this
     const anime = self['anime' + index]
     anime.direction = dirt
@@ -99,28 +99,14 @@ export default class App extends Vue {
 
       this.anime1
       .animator({
-        duration: (el, i) => {
-          if (i % 2 === 1) {
-            return 1000
-          } else {
-            return 3000
-          }
-        },
-        ease: 'elasticEaseOut',
-        properties: {
-          translateY: 100,
-          opacity: 0.3
-        }
-      })
-      .animator({
-        duration: 750,
-        ease: 'elasticEaseOut',
+        duration: 350,
         delay: (el, i) => {
-          return 100 + i * 400
+          return i * 150
         },
         properties: {
-          translateY: 0,
-          opacity: 1
+          // backgroundColor: '#FF0000'
+          backgroundColor: 'hsla(60, 100%, 47%, 0.5)',
+          color: '#00BFFF'
         }
       })
       .animator({
@@ -128,12 +114,11 @@ export default class App extends Vue {
         duration: (el, i) => {
           return 1050 + i * 500
         },
-        delay: (el, i) => {
-          return 100 + i * 400
-        },
         properties: {
           scale: 5,
-          borderRadius: '50%'
+          borderRadius: '50%',
+          color: '#ffffff',
+          backgroundColor: '#1E90FF'
         }
       })
       .animator({
@@ -144,7 +129,19 @@ export default class App extends Vue {
         },
         properties: {
           scale: 2,
-          borderRadius: '0%'
+          borderRadius: '0%',
+          color: '#FFFF00',
+          backgroundColor: '#FFA500'
+        }
+      })
+      .animator({
+        duration: (el, i) => {
+          return 1000 + i * 150
+        },
+        properties: {
+          scale: 1,
+          color: '#ffffff',
+          backgroundColor: '#00FFFF'
         }
       })
     })
@@ -177,7 +174,7 @@ export default class App extends Vue {
     height 20px
     margin-right 10px
     background-color red
-    // border-radius 50%
+    color #ffffff
   .ball-1
     background-color #FF83FA
   .ball-2

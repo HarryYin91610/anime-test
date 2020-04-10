@@ -5,6 +5,11 @@ type TUpdating = ({sq, percent}: IUpdateOptions) => void
 type NumberGenerator = (el: HTMLElement, i: number) => number
 type TweenFunction = (t: number, b: number, c: number, d: number, s?: number, a?: number, p?: number) => number
 
+interface IColorCache {
+  start?: number[]
+  end?: number[]
+}
+
 interface IAgileAnimeOptions {
   target: TargetType
   loop?: boolean
@@ -33,6 +38,8 @@ interface IAnimeNode {
   rotateY?: number | string
   rotateZ?: number | string
   opacity?: number
+  color?: string
+  backgroundColor?: string
   [propName: string]: any
 }
 
@@ -71,6 +78,14 @@ export class Anime {
   private rotateX: number[] | string[]
   private rotateY: number[] | string[]
   private rotateZ: number[] | string[]
+  // 其他可变化属性
+  private opacity: number[]
+  private borderRadius: number[] | string[]
+  private color: string[]
+  private backgroundColor: string[]
+  // 颜色值缓存：0 初始颜色数组[R, G, B, A]，1 目的颜色数组[R, G, B, A]
+  private colorCache: IColorCache[]
+  private backgroundColorCache: IColorCache[]
 
   constructor(sequence: number,
     targets: HTMLElement[],
@@ -79,9 +94,11 @@ export class Anime {
     update?: TUpdating)
 
   initStartNode(): void
-  play(): Promise<Anime>
+  play(): Promise<Anime>|null
   pause(): void
   stop(): void
+
+  [propName: string]: any
 }
 
 export { 
@@ -94,5 +111,6 @@ export {
   TCallback,
   TUpdating,
   ITween,
-  TweenFunction
+  TweenFunction,
+  IColorCache
 }

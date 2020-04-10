@@ -1,7 +1,7 @@
 /* ___ @HarryYin __ */
 
 /* 有效的transform属性 */
-export const transformList = [
+export const transformList: string[] = [
   'translateX',
   'translateY',
   'translateZ',
@@ -15,7 +15,7 @@ export const transformList = [
 ]
 
 /* 有效的其他属性 */
-export const propsList = [
+export const propsList: string[] = [
   'opacity',
   'borderRadius',
   'color',
@@ -23,7 +23,7 @@ export const propsList = [
 ]
 
 /* 有效的单位 */
-export const unitList = [
+export const unitList: string[] = [
   'px',
   'em',
   'rem',
