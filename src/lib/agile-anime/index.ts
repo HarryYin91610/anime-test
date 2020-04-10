@@ -6,7 +6,7 @@ import { IAgileAnimeOptions, IAnimeOptions, DirtType, TCallback, TUpdating } fro
 
 export default class AgileAnime {
   private targets: HTMLElement[] = []// 动画操作的dom节点列表
-  public loop?: boolean = false // 是否循环
+  public loop?: boolean | number = false // 是否循环
   private count: number = 0 // 当前播放次数
   public direction?: DirtType = 'normal' // 动画播放的方向：normal 正向，reverse 反向，alternate 奇数次正向 && 偶数次反向
 
@@ -96,7 +96,8 @@ export default class AgileAnime {
       this.curAsq = 0
       // 动画完成时回调
       this.complete && this.complete(this.count)
-      if (this.loop) {
+      if ((typeof this.loop === 'boolean' && this.loop)
+      || (typeof this.loop === 'number' && this.loop > this.count)) {
         this.resetNode()
         this.play()
       } else {

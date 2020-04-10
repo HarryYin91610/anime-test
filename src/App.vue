@@ -65,7 +65,7 @@ export default class App extends Vue {
     const self: any = this
     const anime = self['anime' + index]
     anime.direction = dirt
-    anime.loop = loop
+    // anime.loop = loop
     if (anime.playing) {
       console.log('动画正在进行中...')
       return
@@ -92,7 +92,8 @@ export default class App extends Vue {
         document.querySelector('#app #ball4') as HTMLElement
       ]
       this.anime1 = new AgileAnime({
-        target: ['#app #ball1', '#app #ball2', '#app #ball3', '#app #ball4']
+        target: ['#app #ball1', '#app #ball2', '#app #ball3', '#app #ball4'],
+        loop: 1
         // target: '#app #ball1'
         // target: list
       })

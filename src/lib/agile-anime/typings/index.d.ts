@@ -12,7 +12,7 @@ interface IColorCache {
 
 interface IAgileAnimeOptions {
   target: TargetType
-  loop?: boolean
+  loop?: boolean | number
   direction?: DirtType
   begin?: TCallback
   update?: TUpdating
