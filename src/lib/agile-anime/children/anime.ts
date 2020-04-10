@@ -134,7 +134,7 @@ export default class Anime {
         switch (pkey) {
           case 'opacity':
           case 'borderRadius':
-          const val1: string | null = target.style[pkey]
+          const val1: string | null = getComputedStyle(target)[pkey]
           if (val1 && self[pkey] && self.properties[pkey]) {
             self[pkey].splice(tindex, 1, val1)
             self.startNode[tindex][pkey] = self[pkey][tindex]

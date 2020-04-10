@@ -13,10 +13,10 @@ div#app
     div.button(@click="stopBall(1)")
       | stop
   div.demo-panel
-    div.ball-1(id="ball1") 1
-    div.ball-1(id="ball2") 2
-    div.ball-1(id="ball3") 3
-    div.ball-1(id="ball4") 4
+    div.ball-1(id="ball1")
+    div.ball-1(id="ball2")
+    div.ball-1(id="ball3")
+    div.ball-1(id="ball4")
 
   //- 播放、暂停、停止
   //- div.button-wrap
@@ -93,40 +93,33 @@ export default class App extends Vue {
       ]
       this.anime1 = new AgileAnime({
         target: ['#app #ball1', '#app #ball2', '#app #ball3', '#app #ball4'],
-        loop: 1
+        loop: 1,
         // target: '#app #ball1'
         // target: list
       })
 
       this.anime1
       .animator({
-        duration: 350,
+        duration: 150,
+        properties: {
+          translateY: -180
+        }
+      })
+      .animator({
+        ease: 'bounceEaseOut',
+        duration: 1050,
         delay: (el, i) => {
           return i * 150
         },
         properties: {
-          // backgroundColor: '#FF0000'
-          backgroundColor: 'hsla(60, 100%, 47%, 0.5)',
-          color: '#00BFFF'
+          translateY: 150
         }
       })
       .animator({
-        ease: 'elasticEaseOut',
-        duration: (el, i) => {
-          return 1050 + i * 500
-        },
-        properties: {
-          scale: 5,
-          borderRadius: '50%',
-          color: '#ffffff',
-          backgroundColor: '#1E90FF'
-        }
-      })
-      .animator({
-        duration: 350,
-        ease: 'elasticEaseOut',
+        duration: 150,
+        ease: 'linear',
         delay: (el, i) => {
-          return i * 200
+          return i * 150
         },
         properties: {
           scale: 2,
@@ -136,6 +129,7 @@ export default class App extends Vue {
         }
       })
       .animator({
+        ease: 'elasticEaseOut',
         duration: (el, i) => {
           return 1000 + i * 150
         },
@@ -171,11 +165,12 @@ export default class App extends Vue {
   color #2c3e50
   margin-top 60px
   .ball-1, .ball-2
-    width 20px
-    height 20px
+    width 30px
+    height 30px
     margin-right 10px
     background-color red
     color #ffffff
+    border-radius 50%
   .ball-1
     background-color #FF83FA
   .ball-2
