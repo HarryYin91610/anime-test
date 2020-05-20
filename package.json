@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@bilibili-live/agile-anime": "^0.2.2",
     "bezier-easing": "^2.1.0",
     "core-js": "^3.4.3",
     "vue": "^2.6.10",

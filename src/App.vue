@@ -92,53 +92,72 @@ export default class App extends Vue {
         document.querySelector('#app #ball4') as HTMLElement
       ]
       this.anime1 = new AgileAnime({
-        target: ['#app #ball1', '#app #ball2', '#app #ball3', '#app #ball4'],
-        loop: 1,
+        target: ['#app #ball1'],
+        loop: true
         // target: '#app #ball1'
         // target: list
       })
 
       this.anime1
       .animator({
-        duration: 150,
+        duration: 0,
         properties: {
-          translateY: -180
+          scale: 1
         }
       })
       .animator({
-        ease: 'bounceEaseOut',
-        duration: 1050,
-        delay: (el, i) => {
-          return i * 150
-        },
+        duration: 500,
         properties: {
-          translateY: 150
+          scale: 0.3
         }
       })
       .animator({
-        duration: 150,
-        ease: 'linear',
-        delay: (el, i) => {
-          return i * 150
-        },
-        properties: {
-          scale: 2,
-          borderRadius: '0%',
-          color: '#FFFF00',
-          backgroundColor: '#FFA500'
-        }
-      })
-      .animator({
+        duration: 500,
         ease: 'elasticEaseOut',
-        duration: (el, i) => {
-          return 1000 + i * 150
-        },
         properties: {
-          scale: 1,
-          color: '#ffffff',
-          backgroundColor: '#00FFFF'
+          scale: 1
         }
       })
+      .animator({
+        duration: 500,
+        properties: {
+          scale: 1
+        }
+      })
+      // .animator({
+      //   ease: 'bounceEaseOut',
+      //   duration: 1050,
+      //   delay: (el, i) => {
+      //     return i * 150
+      //   },
+      //   properties: {
+      //     translateY: 150
+      //   }
+      // })
+      // .animator({
+      //   duration: 150,
+      //   ease: 'linear',
+      //   delay: (el, i) => {
+      //     return i * 150
+      //   },
+      //   properties: {
+      //     scale: 2,
+      //     borderRadius: '0%',
+      //     color: '#FFFF00',
+      //     backgroundColor: '#FFA500'
+      //   }
+      // })
+      // .animator({
+      //   ease: 'elasticEaseOut',
+      //   duration: (el, i) => {
+      //     return 1000 + i * 150
+      //   },
+      //   properties: {
+      //     scale: 1,
+      //     color: '#ffffff',
+      //     backgroundColor: '#00FFFF'
+      //   }
+      // })
     })
   }
 }
